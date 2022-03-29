@@ -1,0 +1,112 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2022 18:19:07 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "Nixie.h"
+   3          
+   4          unsigned int count,count_s;
+   5          unsigned int dat;
+   6          void Timer_Init()   //定时器0用作计数模式，8位自动重装 
+   7          {                   //定时器1用作定时模式，16位
+   8   1        TMOD = 0x16;
+   9   1        
+  10   1        TH0 = 0xff;
+  11   1        TL0 = 0xff;
+  12   1        
+  13   1        TH1 = (65535-50000)/256;
+  14   1        TL1 = (65535-50000)%256;
+  15   1        
+  16   1        ET0 = 1;  
+  17   1        ET1 = 1;
+  18   1      
+  19   1        EA = 1;
+  20   1        
+  21   1        TR0 = 1;
+  22   1        TR1 = 1;
+  23   1      }
+  24          
+  25          void Timer0_Service() interrupt 1
+  26          {
+  27   1        count++;
+  28   1      }
+  29          
+  30          void Timer1_Service() interrupt 3
+  31          {
+  32   1        TH1 = (65535-50000)/256;
+  33   1        TL1 = (65535-50000)%256;
+  34   1        count_s++;
+  35   1        if(count_s == 20)
+  36   1        {
+  37   2          dat = count;
+  38   2          count = 0;
+  39   2          count_s = 0;
+  40   2        }
+  41   1      }
+  42          
+  43          void Display()
+  44          {
+  45   1        Display_NixieBit(0,0x8e);
+  46   1        Delay_Nixie(100);
+  47   1        Display_NixieBit(1,0xff);
+  48   1        Delay_Nixie(100);
+  49   1        Display_NixieBit(2,0xff);
+  50   1        Delay_Nixie(100);
+  51   1        
+  52   1        if(dat>9999)
+  53   1        {
+  54   2          Display_NixieBit(3,NixieTableNoDot[dat/10000]);
+C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2022 18:19:07 PAGE 2   
+
+  55   2          Delay_Nixie(100);
+  56   2        }
+  57   1        if(dat>999)
+  58   1        {
+  59   2          Display_NixieBit(4,NixieTableNoDot[(dat/1000)%10]);
+  60   2          Delay_Nixie(100);
+  61   2        }
+  62   1        if(dat>99)
+  63   1        {
+  64   2          Display_NixieBit(5,NixieTableNoDot[(dat/100)%10]);
+  65   2          Delay_Nixie(100);
+  66   2        }
+  67   1        if(dat>9)
+  68   1        {
+  69   2          Display_NixieBit(6,NixieTableNoDot[(dat/10)%10]);
+  70   2          Delay_Nixie(100);
+  71   2        }
+  72   1        Display_NixieBit(7,NixieTableNoDot[dat%10]);
+  73   1        Delay_Nixie(100);
+  74   1        
+  75   1        Display_All(0xff);
+  76   1        Delay_Nixie(100);
+  77   1      }
+  78          
+  79          void main()
+  80          {
+  81   1        Timer_Init();
+  82   1        while(1)
+  83   1        {
+  84   2          Display();
+  85   2        }
+  86   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    385    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

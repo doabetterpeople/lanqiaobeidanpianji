@@ -1,0 +1,220 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    02/13/2022  13:02:24  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\project PRINT (.\Listings\project.m51) RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\main.obj (MAIN)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C?CLDPTR)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\Objects\project (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0003H     UNIT         _DATA_GROUP_
+            DATA    000BH     0001H     UNIT         ?DT?MAIN
+            IDATA   000CH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0019H     UNIT         ?C?LIB_CODE
+            CODE    001CH     0004H     UNIT         ?C_INITSEG
+                    0020H     0003H                  *** GAP ***
+            CODE    0023H     0003H     ABSOLUTE     
+            CODE    0026H     008CH     UNIT         ?C_C51STARTUP
+            CODE    00B2H     003DH     UNIT         ?PR?LED_RUN?MAIN
+            CODE    00EFH     0033H     UNIT         ?PR?_HC138_INIT?MAIN
+            CODE    0122H     0032H     UNIT         ?CO?MAIN
+            CODE    0154H     0025H     UNIT         ?PR?_SEND_STR?MAIN
+            CODE    0179H     0016H     UNIT         ?PR?UART_INIT?MAIN
+            CODE    018FH     0014H     UNIT         ?PR?MAIN?MAIN
+            CODE    01A3H     0010H     UNIT         ?PR?SYSTEM_INIT?MAIN
+            CODE    01B3H     000BH     UNIT         ?PR?UART_SERVICE?MAIN
+            CODE    01BEH     0008H     UNIT         ?PR?_SEND_BYTE?MAIN
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\project (MAIN)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN                  -----    -----
+  +--> ?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?UART_INIT?MAIN
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/13/2022  13:02:24  PAGE 2
+
+
+  +--> ?CO?MAIN
+  +--> ?PR?_SEND_STR?MAIN
+  +--> ?PR?LED_RUN?MAIN
+
+?PR?SYSTEM_INIT?MAIN           -----    -----
+  +--> ?PR?_HC138_INIT?MAIN
+
+?PR?_SEND_STR?MAIN             0008H    0003H
+  +--> ?PR?_SEND_BYTE?MAIN
+
+?PR?LED_RUN?MAIN               -----    -----
+  +--> ?CO?MAIN
+  +--> ?PR?_SEND_STR?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\project (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:01A3H         PUBLIC        System_Init
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  C:01BEH         PUBLIC        _Send_Byte
+  D:00B0H         PUBLIC        P3
+  D:00C0H         PUBLIC        P4
+  D:00C8H         PUBLIC        P5
+  B:00A8H.7       PUBLIC        EA
+  D:00E8H         PUBLIC        P6
+  D:00F8H         PUBLIC        P7
+  D:00A8H         PUBLIC        IE
+  B:00A8H.4       PUBLIC        ES
+  D:00B8H         PUBLIC        IP
+  B:0098H.0       PUBLIC        RI
+  B:0098H.1       PUBLIC        TI
+  C:00EFH         PUBLIC        _HC138_Init
+  D:00D8H         PUBLIC        CCON
+  C:018FH         PUBLIC        main
+  D:0099H         PUBLIC        SBUF
+  C:0179H         PUBLIC        UART_Init
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  D:008EH         PUBLIC        AUXR
+  C:0154H         PUBLIC        _Send_str
+  D:008DH         PUBLIC        TH1
+  D:008BH         PUBLIC        TL1
+  B:0088H.6       PUBLIC        TR1
+  D:000BH         PUBLIC        command
+  C:00B2H         PUBLIC        LED_Run
+  C:01B3H         PUBLIC        UART_Service
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _HC138_INIT
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/13/2022  13:02:24  PAGE 3
+
+
+  D:0007H         SYMBOL        channel
+  C:00EFH         LINE#         3
+  C:00EFH         LINE#         4
+  C:00EFH         LINE#         5
+  C:00FEH         LINE#         6
+  C:00FEH         LINE#         7
+  C:0107H         LINE#         8
+  C:0110H         LINE#         9
+  C:0119H         LINE#         10
+  C:0121H         LINE#         11
+  C:0121H         LINE#         12
+  -------         ENDPROC       _HC138_INIT
+  -------         PROC          SYSTEM_INIT
+  C:01A3H         LINE#         14
+  C:01A3H         LINE#         15
+  C:01A3H         LINE#         16
+  C:01A8H         LINE#         17
+  C:01ABH         LINE#         18
+  C:01AFH         LINE#         19
+  C:01B2H         LINE#         20
+  -------         ENDPROC       SYSTEM_INIT
+  -------         PROC          UART_INIT
+  C:0179H         LINE#         22
+  C:0179H         LINE#         23
+  C:0179H         LINE#         24
+  C:017CH         LINE#         25
+  C:017FH         LINE#         26
+  C:0182H         LINE#         27
+  C:0185H         LINE#         28
+  C:0188H         LINE#         29
+  C:018AH         LINE#         30
+  C:018CH         LINE#         31
+  C:018EH         LINE#         33
+  -------         ENDPROC       UART_INIT
+  -------         PROC          UART_SERVICE
+  C:01B3H         LINE#         35
+  C:01B3H         LINE#         37
+  C:01B6H         LINE#         38
+  C:01B6H         LINE#         39
+  C:01B9H         LINE#         40
+  C:01BBH         LINE#         41
+  C:01BDH         LINE#         42
+  -------         ENDPROC       UART_SERVICE
+  -------         PROC          _SEND_BYTE
+  D:0007H         SYMBOL        dat
+  C:01BEH         LINE#         44
+  C:01BEH         LINE#         45
+  C:01BEH         LINE#         46
+  C:01C0H         LINE#         47
+  C:01C3H         LINE#         48
+  C:01C5H         LINE#         49
+  -------         ENDPROC       _SEND_BYTE
+  -------         PROC          _SEND_STR
+  D:0008H         SYMBOL        str
+  C:0154H         LINE#         51
+  C:015AH         LINE#         52
+  C:015AH         LINE#         53
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/13/2022  13:02:24  PAGE 4
+
+
+  C:0165H         LINE#         54
+  C:0165H         LINE#         55
+  C:0176H         LINE#         56
+  C:0178H         LINE#         57
+  -------         ENDPROC       _SEND_STR
+  -------         PROC          LED_RUN
+  C:00B2H         LINE#         59
+  C:00B2H         LINE#         60
+  C:00B2H         LINE#         61
+  C:00B6H         LINE#         62
+  C:00C4H         LINE#         63
+  C:00C4H         LINE#         64
+  C:00D0H         LINE#         65
+  C:00E2H         LINE#         66
+  C:00EEH         LINE#         67
+  C:00EEH         LINE#         68
+  -------         ENDPROC       LED_RUN
+  -------         PROC          MAIN
+  C:018FH         LINE#         69
+  C:018FH         LINE#         70
+  C:018FH         LINE#         71
+  C:0192H         LINE#         72
+  C:0195H         LINE#         73
+  C:019EH         LINE#         74
+  C:019EH         LINE#         75
+  C:019EH         LINE#         76
+  C:01A1H         LINE#         77
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        ?C?CLDPTR
+  C:0003H         PUBLIC        ?C?CLDPTR
+  -------         ENDMOD        ?C?CLDPTR
+
+Program Size: data=13.0 xdata=0 code=451
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

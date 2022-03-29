@@ -1,0 +1,83 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 12:29:48 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          
+   3          void HC138_Init(unsigned char x)
+   4          {
+   5   1        switch(x)
+   6   1        {
+   7   2          case 4: P2 = (P2 &0x1f)|0x80;break;
+   8   2          case 5: P2 = (P2 &0x1f)|0xa0;break;
+   9   2          case 6: P2 = (P2 &0x1f)|0xc0;break;
+  10   2          case 7: P2 = (P2 &0x1f)|0xe0;break;
+  11   2        }
+  12   1      }
+  13          
+  14          void Delay(unsigned int t)
+  15          {
+  16   1        while(t--);
+  17   1        while(t--);
+  18   1      }
+  19          
+  20          void Led_Run()
+  21          {
+  22   1        unsigned char i,j;
+  23   1        for(i=0;i<3;i++)
+  24   1        {
+  25   2          HC138_Init(4);
+  26   2          P0 = 0x00;
+  27   2          Delay(60000);
+  28   2          P0 = 0xff;
+  29   2          Delay(60000);
+  30   2        }
+  31   1        for(j=0;j<8;j++)
+  32   1        {
+  33   2          HC138_Init(4);
+  34   2          P0 = 0xfe << j;
+  35   2          Delay(60000);
+  36   2        }
+  37   1        for(j=0;j<8;j++)
+  38   1        {
+  39   2          HC138_Init(4);
+  40   2          P0 = ~(0xfe << j);
+  41   2          Delay(60000);
+  42   2        }
+  43   1      }
+  44          
+  45          void Led_Init()
+  46          {
+  47   1        HC138_Init(4);
+  48   1        P0 = 0xff;
+  49   1      }
+  50          void main()
+  51          {
+  52   1        Led_Init();
+  53   1        while(1)
+  54   1        {
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 12:29:48 PAGE 2   
+
+  55   2          Led_Run();
+  56   2        }
+  57   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    195    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

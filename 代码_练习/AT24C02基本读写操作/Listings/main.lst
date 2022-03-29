@@ -1,0 +1,144 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              02/19/2022 13:22:25 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "iic.h"
+   3          #include "absacc.h"
+   4          unsigned char code NixieTable[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,
+   5                                      0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8e,
+   6                                      0xbf,0x7f};
+   7          /*主机首先发送起始信号，
+   8          接着发送设备地址和它想要读取的数据内存字节地址，执行一个伪写操作。
+   9          在24C02应答主机之后，主机重新发送起始信号和从设备地址，进行读操作。
+  10          24C02响应并发送应答信号，然后输出所要求的一个8位字节数据。
+  11          主机接收完这个8位数据后，产生一个“非应答”信号，最后发送停止条件，字节读操作结束。*/
+  12          
+  13          
+  14          /*在IIC总线协议中，设备地址是起始信号后第一个发送的字节。
+  15          如果硬件地址引脚A0、A1、A2均接地，
+  16          那么，24C02的设备的读操作地址为：0xA1；而写操作地址则为：0xA0。*/
+  17          void Delay(unsigned int t)
+  18          {
+  19   1        while(t--);
+  20   1      }
+  21          unsigned char IIC_Read(unsigned char addr)
+  22          {
+  23   1        unsigned char temp;
+  24   1        IIC_Start();
+  25   1        IIC_SendByte(0xa0);
+  26   1        IIC_WaitAck(); 
+  27   1        IIC_SendByte(addr);
+  28   1        IIC_WaitAck();
+  29   1        IIC_Start();
+  30   1        IIC_SendByte(0xa1);
+  31   1        IIC_WaitAck();
+  32   1        temp = IIC_RecByte(); 
+  33   1        IIC_SendAck(0);
+  34   1        IIC_Stop();
+  35   1        return temp;
+  36   1      }
+  37          
+  38          /*4C02接收完设备地址后，产生应答信号；
+  39          然后接收8位内存字节地址，产生应答信号，接着接收一个8位数据，产生应答信号；
+  40          最后主机发送停止信号，字节写操作结束。*/
+  41          
+  42          void IIC_Write(unsigned char addr,unsigned char dat)
+  43          {
+  44   1        IIC_Start();
+  45   1        IIC_SendByte(0xa0);
+  46   1        IIC_WaitAck();
+  47   1        IIC_SendByte(addr);
+  48   1        IIC_WaitAck();
+  49   1        IIC_SendByte(dat);
+  50   1        IIC_WaitAck();
+  51   1        IIC_Stop();
+  52   1      }
+  53          unsigned char temp1,temp3,temp5;
+  54          void IIC_Working()
+C51 COMPILER V9.59.0.0   MAIN                                                              02/19/2022 13:22:25 PAGE 2   
+
+  55          {
+  56   1        temp1=IIC_Read(0x01)+1; 
+  57   1        temp3=IIC_Read(0x03)+2;
+  58   1        temp5=IIC_Read(0x05)+3;
+  59   1        
+  60   1        if(temp1>10)
+  61   1        {temp1=0;}
+  62   1        if(temp3>20)
+  63   1        {temp3=0;}
+  64   1        if(temp5>30)
+  65   1        {temp5=0;}
+  66   1        
+  67   1        IIC_Write(0x01, temp1);
+  68   1        Delay(1000);
+  69   1        IIC_Write(0x03, temp3);
+  70   1        Delay(1000);
+  71   1        IIC_Write(0x05, temp5);
+  72   1        Delay(1000);
+  73   1      
+  74   1      }
+  75          
+  76          
+  77          
+  78          void Nixie_Display(unsigned char pose,unsigned char dat)
+  79          {
+  80   1        XBYTE[0XC000] = 0x01 <<pose;
+  81   1        XBYTE[0XE000] = dat ;
+  82   1      }
+  83          
+  84          void Nixie_Run()
+  85          {
+  86   1        Nixie_Display(0,NixieTable[temp1/10]);
+  87   1        Delay(500);
+  88   1        Nixie_Display(1,NixieTable[temp1%10]);
+  89   1        Delay(500);
+  90   1        Nixie_Display(2,0xbf);
+  91   1        Delay(500);
+  92   1        Nixie_Display(3,NixieTable[temp3/10]);
+  93   1        Delay(500);
+  94   1        Nixie_Display(4,NixieTable[temp3%10]);
+  95   1        Delay(500);
+  96   1        Nixie_Display(5,0xbf);
+  97   1        Delay(500);
+  98   1        Nixie_Display(6,NixieTable[temp5/10]);
+  99   1        Delay(500);
+ 100   1        Nixie_Display(7,NixieTable[temp5&10]);
+ 101   1        Delay(500);
+ 102   1        
+ 103   1        XBYTE[0XA000] = 0xff;
+ 104   1        XBYTE[0XC000] = 0x00;
+ 105   1      }
+ 106          void main()
+ 107          {
+ 108   1        IIC_Working();
+ 109   1        while(1)
+ 110   1        { 
+ 111   2          Nixie_Run();
+ 112   2        }
+ 113   1      }
+ 114            
+ 115          
+ 116          
+C51 COMPILER V9.59.0.0   MAIN                                                              02/19/2022 13:22:25 PAGE 3   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    355    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

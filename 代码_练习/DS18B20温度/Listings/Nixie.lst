@@ -1,0 +1,43 @@
+C51 COMPILER V9.59.0.0   NIXIE                                                             03/07/2022 12:21:54 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE NIXIE
+OBJECT MODULE PLACED IN .\Objects\Nixie.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE Nixie.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\Nix
+                    -ie.lst) TABS(2) OBJECT(.\Objects\Nixie.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "absacc.h"
+   3          
+   4          void Delay_Nixie(unsigned int t)
+   5          {
+   6   1        while(t--);
+   7   1      }
+   8          
+   9          void Display_NixieBit(unsigned char i,unsigned char dat)
+  10          {
+  11   1        XBYTE[0XC000] = 0x01<<i;
+  12   1        XBYTE[0XE000] = dat;
+  13   1      }
+  14          
+  15          void Display_All(unsigned char dat)
+  16          {
+  17   1        XBYTE[0XC000] = 0xff;
+  18   1        XBYTE[0XE000] = dat;  
+  19   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     44    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

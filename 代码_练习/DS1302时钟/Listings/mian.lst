@@ -1,0 +1,100 @@
+C51 COMPILER V9.59.0.0   MIAN                                                              03/07/2022 21:12:48 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MIAN
+OBJECT MODULE PLACED IN .\Objects\mian.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE mian.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\mian
+                    -.lst) TABS(2) OBJECT(.\Objects\mian.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "ds1302.h"
+   3          #include "Nixie.h"
+   4          
+   5          unsigned char DS1302_Write_adr[7]= {0x80,0x82,0x84,0x86,0x88,0x8a,0x8c};
+   6          unsigned char DS1302_Read_adr[7] = {0x81,0x83,0x85,0x87,0x89,0x8b,0x8d};
+   7          //2022年1月18日 星期二 23点59分45秒
+   8          //2022年2月13日 星期日 17点50分00秒
+   9          unsigned char Timer[7] ={0x00,0x50,0x17,0x13,0x02,0x07,0x22};
+  10          
+  11          void DS1302_Config()
+  12          {
+  13   1      //  unsigned char i;
+  14   1      //  Write_Ds1302(0x8e,0x00);  //控制寄存器的第7位为写保护，必须为0才能进行写操作
+  15   1      //  for(i=0;i<7;i++)
+  16   1      //  {
+  17   1      //    Write_Ds1302(DS1302_Write_adr[i],Timer[i]);
+  18   1      //  }
+  19   1      //  Write_Ds1302(0x8e,0x80);
+  20   1        unsigned char i;
+  21   1        Write_Ds1302(0x8e,0x00);
+  22   1        for(i=0;i<7;i++)
+  23   1        {
+  24   2          Write_Ds1302(DS1302_Write_adr[i],Timer[i]);
+  25   2        }
+  26   1        Write_Ds1302(0x8e,0x80);
+  27   1      }
+  28          
+  29          void Read_Ds1302_Timer()
+  30          {
+  31   1      //  char i;
+  32   1      //  for(i=0;i<7;i++)
+  33   1      //  {
+  34   1      //    Timer[i]=Read_Ds1302(DS1302_Read_adr[i]);
+  35   1      //  }
+  36   1        char i;
+  37   1        for(i=0;i<7;i++)
+  38   1        {
+  39   2          Timer[i]=Read_Ds1302 ( DS1302_Read_adr[i] );
+  40   2        }
+  41   1      }
+  42          void Display()
+  43          {
+  44   1          Display_NixieBit(0,NixieTableNoDot[Timer[2]/16]);
+  45   1          Delay_Nixie(200);
+  46   1          Display_NixieBit(1,NixieTableNoDot[Timer[2]%16]);
+  47   1          Delay_Nixie(200); 
+  48   1          Display_NixieBit(2,0xbf);
+  49   1          Delay_Nixie(200);   
+  50   1        
+  51   1          Display_NixieBit(3,NixieTableNoDot[Timer[1]/16]);
+  52   1          Delay_Nixie(200);
+  53   1          Display_NixieBit(4,NixieTableNoDot[Timer[1]%16]);
+  54   1          Delay_Nixie(200);
+C51 COMPILER V9.59.0.0   MIAN                                                              03/07/2022 21:12:48 PAGE 2   
+
+  55   1          Display_NixieBit(5,0xbf);
+  56   1          Delay_Nixie(200); 
+  57   1        
+  58   1          Display_NixieBit(6,NixieTableNoDot[Timer[0]/16]);
+  59   1          Delay_Nixie(200);
+  60   1          Display_NixieBit(7,NixieTableNoDot[Timer[0]%16]);
+  61   1          Delay_Nixie(200);
+  62   1        
+  63   1          Display_All(0xff);
+  64   1          Delay_Nixie(200);
+  65   1      }
+  66          void main()
+  67          {
+  68   1        DS1302_Config();
+  69   1        while(1)
+  70   1        {
+  71   2          Read_Ds1302_Timer();
+  72   2          Display();
+  73   2        }
+  74   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    271    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

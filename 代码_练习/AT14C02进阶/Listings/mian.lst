@@ -1,0 +1,163 @@
+C51 COMPILER V9.59.0.0   MIAN                                                              03/25/2022 17:16:24 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MIAN
+OBJECT MODULE PLACED IN .\Objects\mian.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE mian.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\mian
+                    -.lst) TABS(2) OBJECT(.\Objects\mian.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "absacc.h"
+   3          #include "iic.h"
+   4          
+   5          sbit S4 = P3^3;
+   6          sbit S5 = P3^2;
+   7          sbit S6 = P3^1;
+   8          
+   9          unsigned char code NixieTable[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,
+  10                                      0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8e,
+  11                                      0xbf,0x7f};
+  12          
+  13          void Nixie_Run();
+  14          unsigned char IIC_Read(unsigned char addr)
+  15          {
+  16   1        unsigned char temp;
+  17   1        IIC_Start();
+  18   1        IIC_SendByte(0xa0);
+  19   1        IIC_WaitAck(); 
+  20   1        IIC_SendByte(addr);
+  21   1        IIC_WaitAck(); 
+  22   1        IIC_Start();
+  23   1        IIC_SendByte(0xa1);
+  24   1        IIC_WaitAck(); 
+  25   1        temp=IIC_RecByte();
+  26   1        IIC_WaitAck();
+  27   1        IIC_SendAck(0);
+  28   1        IIC_Stop(); 
+  29   1        return temp;
+  30   1      }
+  31          
+  32          void IIC_Write(unsigned char addr,unsigned char dat)
+  33          {
+  34   1        IIC_Start();
+  35   1        IIC_SendByte(0xa0);
+  36   1        IIC_WaitAck(); 
+  37   1        IIC_SendByte(addr);
+  38   1        IIC_WaitAck();
+  39   1        IIC_SendByte(dat);
+  40   1        IIC_WaitAck();
+  41   1        IIC_Stop(); 
+  42   1      }
+  43          unsigned char key1,key2,key3;
+  44          void Delay(unsigned int t)
+  45          {
+  46   1        while(t--);
+  47   1      }
+  48          void Key_Scan()
+  49          {
+  50   1        if(S4==0)
+  51   1        {
+  52   2          Delay(20);
+  53   2          if(S4==0)
+  54   2          {
+C51 COMPILER V9.59.0.0   MIAN                                                              03/25/2022 17:16:24 PAGE 2   
+
+  55   3            while(S4==0){Nixie_Run();}
+  56   3            key1++;
+  57   3            if(key1 > 13)
+  58   3            {
+  59   4              key1 = 0;
+  60   4            }
+  61   3          }
+  62   2        }
+  63   1        if(S5==0)
+  64   1        {
+  65   2          Delay(20);
+  66   2          if(S5==0)
+  67   2          {
+  68   3            while(S5==0){Nixie_Run();}
+  69   3            key2++;
+  70   3            if(key2 > 13)
+  71   3            {
+  72   4              key2 = 0;
+  73   4            }
+  74   3          }
+  75   2        }
+  76   1        if(S6==0)
+  77   1        {
+  78   2          Delay(10);
+  79   2          if(S6==0)
+  80   2          {
+  81   3            while(S6==0);
+  82   3            key3++;
+  83   3            if(key3>13)
+  84   3            {
+  85   4              key3 = 0;
+  86   4            }
+  87   3          }
+  88   2        }
+  89   1        IIC_Write(0x00,key1);
+  90   1        Delay(1000);
+  91   1        IIC_Write(0x01,key2);
+  92   1        Delay(1000);
+  93   1        IIC_Write(0x02,key3);
+  94   1        Delay(1000);
+  95   1      }
+  96          
+  97          void Nixie_Display(unsigned char pose,unsigned char dat)
+  98          {
+  99   1        XBYTE[0XC000] = 0x01 <<pose;
+ 100   1        XBYTE[0XE000] = dat ;
+ 101   1      }
+ 102          
+ 103          void Nixie_Run()
+ 104          {
+ 105   1        Nixie_Display(0,NixieTable[key1/10]);
+ 106   1        Delay(500);
+ 107   1        Nixie_Display(1,NixieTable[key1%10]);
+ 108   1        Delay(500);
+ 109   1        Nixie_Display(2,0xbf);
+ 110   1        Delay(500);
+ 111   1        Nixie_Display(3,NixieTable[key2/10]);
+ 112   1        Delay(500);
+ 113   1        Nixie_Display(4,NixieTable[key2%10]);
+ 114   1        Delay(500);
+ 115   1        Nixie_Display(5,0xbf);
+ 116   1        Delay(500);
+C51 COMPILER V9.59.0.0   MIAN                                                              03/25/2022 17:16:24 PAGE 3   
+
+ 117   1        Nixie_Display(6,NixieTable[key3/10]);
+ 118   1        Delay(500);
+ 119   1        Nixie_Display(7,NixieTable[key3%10]);
+ 120   1        Delay(500);
+ 121   1        
+ 122   1        XBYTE[0XA000] = 0xff;
+ 123   1        XBYTE[0XC000] = 0x00;
+ 124   1      }
+ 125          void main()
+ 126          {
+ 127   1        key1=IIC_Read(0x00);
+ 128   1        key2=IIC_Read(0x01);
+ 129   1        key3=IIC_Read(0x02);
+ 130   1        while(1)
+ 131   1        {
+ 132   2          Key_Scan();
+ 133   2          Nixie_Run();
+ 134   2        }
+ 135   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    418    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

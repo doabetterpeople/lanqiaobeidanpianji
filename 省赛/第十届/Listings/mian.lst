@@ -1,0 +1,385 @@
+C51 COMPILER V9.59.0.0   MIAN                                                              03/29/2022 16:54:35 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MIAN
+OBJECT MODULE PLACED IN .\Objects\mian.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE mian.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\mian
+                    -.lst) TABS(2) OBJECT(.\Objects\mian.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "iic.h"
+   3          
+   4          sbit S4 = P3^3; 
+   5          sbit S5 = P3^2; 
+   6          sbit S6 = P3^1; 
+   7          sbit S7 = P3^0; 
+   8          
+   9          sbit L1 = P0^0; 
+  10          sbit L2 = P0^1; 
+  11          sbit L3 = P0^2; 
+  12          sbit L4 = P0^3; 
+  13          sbit L5 = P0^4; 
+  14          
+  15          unsigned int count,count_s;
+  16          unsigned int dat_ne555;
+  17          unsigned char code NixieTableNoDot[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
+  18          unsigned char code NixieTableDot[]={0x40,0x79,0x24,0x30,0x19,0x12,0x02,0x78,0x00,0x10};
+  19          void Delay(unsigned int t)
+  20          {
+  21   1        while(t--);
+  22   1      }
+  23          void HC138_init(unsigned char channel)
+  24          {
+  25   1        switch(channel)
+  26   1        {
+  27   2          case 4: P2 = (P2&0x1f)|0x80;break;
+  28   2          case 5: P2 = (P2&0x1f)|0xa0;break;
+  29   2          case 6: P2 = (P2&0x1f)|0xc0;break;
+  30   2          case 7: P2 = (P2&0x1f)|0xe0;break;
+  31   2        }
+  32   1      }
+  33          
+  34          void Nixie_Display(unsigned char pose,unsigned char dat)
+  35          {
+  36   1        HC138_init(6);
+  37   1        P0 = 0x01 << pose;
+  38   1        HC138_init(7);
+  39   1        P0 = dat;
+  40   1      }
+  41          //=================频率测量======================
+  42          void Timer_init()
+  43          {
+  44   1        TMOD = 0x16;
+  45   1        
+  46   1        TH0 = 0xff;
+  47   1        TL0 = 0xff;
+  48   1      
+  49   1        TH1 = (65535-50000)/256;
+  50   1        TL1 = (65535-50000)%256;
+  51   1      
+  52   1        
+  53   1        ET1 = 1;
+  54   1        ET0 = 1;
+C51 COMPILER V9.59.0.0   MIAN                                                              03/29/2022 16:54:35 PAGE 2   
+
+  55   1        
+  56   1        EA = 1;
+  57   1        
+  58   1        TR1 = 1;
+  59   1        TR0 = 1; 
+  60   1      }
+  61          
+  62          void Timer0_Service() interrupt 1
+  63          {
+  64   1        count++;
+  65   1      }
+  66          
+  67          void Timer1_Service() interrupt 3
+  68          { 
+  69   1        TH1 = (65535-50000)/256;
+  70   1        TL1 = (65535-50000)%256;
+  71   1      
+  72   1        count_s++;
+  73   1        if(count_s==20)
+  74   1        {
+  75   2          dat_ne555=count;
+  76   2          count_s=0;
+  77   2          count=0;
+  78   2        }
+  79   1      }
+  80          void NE555_Display()
+  81          {
+  82   1        Nixie_Display(0,0x8e);
+  83   1        Delay(200);
+  84   1        Nixie_Display(1,0xff);
+  85   1        Delay(200);
+  86   1        if(dat_ne555>99999)
+  87   1        {
+  88   2          Nixie_Display(2,NixieTableNoDot[dat_ne555/100000]);
+  89   2          Delay(200);
+  90   2        }
+  91   1        if(dat_ne555>9999)
+  92   1        {
+  93   2          Nixie_Display(3,NixieTableNoDot[(dat_ne555/10000)%10]);
+  94   2          Delay(200);
+  95   2        }
+  96   1        if(dat_ne555>999)
+  97   1        {
+  98   2          Nixie_Display(4,NixieTableNoDot[(dat_ne555/1000)%10]);
+  99   2          Delay(200);
+ 100   2        }
+ 101   1        if(dat_ne555>99)
+ 102   1        {
+ 103   2          Nixie_Display(5,NixieTableNoDot[(dat_ne555/100)%10]);
+ 104   2          Delay(200);
+ 105   2        }
+ 106   1        if(dat_ne555>9)
+ 107   1        {
+ 108   2          Nixie_Display(6,NixieTableNoDot[(dat_ne555/10)%10]);
+ 109   2          Delay(200);
+ 110   2        }
+ 111   1        Nixie_Display(7,NixieTableNoDot[dat_ne555%10]);
+ 112   1        Delay(200);
+ 113   1        
+ 114   1        HC138_init(6);
+ 115   1        P0 = 0xff;
+ 116   1        HC138_init(7);
+C51 COMPILER V9.59.0.0   MIAN                                                              03/29/2022 16:54:35 PAGE 3   
+
+ 117   1        P0 = 0xff;
+ 118   1      }
+ 119          
+ 120          //================电压测量界面=================================
+ 121          int dat_adc;
+ 122          float AIN3_Read()
+ 123          {
+ 124   1        float temp;
+ 125   1        IIC_Start();
+ 126   1        IIC_SendByte(0x90);
+ 127   1        IIC_WaitAck();
+ 128   1        IIC_SendByte(0x43);
+ 129   1        IIC_WaitAck();
+ 130   1        IIC_Stop();
+ 131   1        
+ 132   1        IIC_Start();
+ 133   1        IIC_SendByte(0x91);
+ 134   1        IIC_WaitAck();
+ 135   1        temp=IIC_RecByte();
+ 136   1        IIC_WaitAck();
+ 137   1        IIC_Stop();
+ 138   1        return temp;
+ 139   1      }
+ 140          void DAC(unsigned int date)
+ 141          {
+ 142   1        IIC_Start();
+ 143   1        IIC_SendByte(0x90);
+ 144   1        IIC_WaitAck();
+ 145   1        IIC_SendByte(0x40);
+ 146   1        IIC_WaitAck();
+ 147   1        
+ 148   1        IIC_SendByte(date);
+ 149   1        IIC_WaitAck();
+ 150   1        IIC_SendAck(0);
+ 151   1        IIC_Stop();
+ 152   1      }
+ 153          void Change()
+ 154          {
+ 155   1        float x;
+ 156   1        x = AIN3_Read();
+ 157   1        dat_adc = (int)(x*1.961);
+ 158   1      }
+ 159          void ADC_Display()
+ 160          {
+ 161   1        Change();
+ 162   1        Nixie_Display(0,0xc1);
+ 163   1        Delay(200);
+ 164   1        Nixie_Display(1,0xff);
+ 165   1        Delay(200);
+ 166   1        Nixie_Display(2,0xff);
+ 167   1        Delay(200);
+ 168   1        Nixie_Display(3,0xff);
+ 169   1        Delay(200);
+ 170   1        Nixie_Display(4,0xff);
+ 171   1        Delay(200);
+ 172   1        Nixie_Display(5,NixieTableDot[dat_adc/100]);
+ 173   1        Delay(200);
+ 174   1        Nixie_Display(6,NixieTableNoDot[dat_adc/10%10]);
+ 175   1        Delay(200);
+ 176   1        Nixie_Display(7,NixieTableNoDot[dat_adc%10]);
+ 177   1        Delay(200);
+ 178   1        
+C51 COMPILER V9.59.0.0   MIAN                                                              03/29/2022 16:54:35 PAGE 4   
+
+ 179   1        HC138_init(6);
+ 180   1        P0 = 0xff;
+ 181   1        HC138_init(7);
+ 182   1        P0 = 0xff;
+ 183   1      }
+ 184          //=======================按键功能======================================
+ 185          unsigned char stat_main=0;
+ 186          unsigned char flag=1;
+ 187          unsigned char stat_led=0;
+ 188          unsigned char stat_nixie=0;
+ 189          void Display_max()
+ 190          {
+ 191   1        Change();
+ 192   1        if(flag==1)
+ 193   1        {
+ 194   2          DAC(102.4);
+ 195   2        }
+ 196   1        if(flag==2) 
+ 197   1        {
+ 198   2          DAC(dat_adc/1.961);
+ 199   2        }
+ 200   1        if(stat_main==0)
+ 201   1        {
+ 202   2          if(stat_nixie==0)
+ 203   2          {
+ 204   3            ADC_Display();
+ 205   3          }
+ 206   2          else 
+ 207   2          {
+ 208   3            HC138_init(6);
+ 209   3            P0 = 0xff;
+ 210   3            HC138_init(7);
+ 211   3            P0 = 0xff;
+ 212   3          }
+ 213   2        }
+ 214   1        else
+ 215   1        {
+ 216   2          if(stat_nixie==0)
+ 217   2          {
+ 218   3            NE555_Display();
+ 219   3          }
+ 220   2          else 
+ 221   2          {
+ 222   3            HC138_init(6);
+ 223   3            P0 = 0xff;
+ 224   3            HC138_init(7);
+ 225   3            P0 = 0xff;
+ 226   3          }
+ 227   2        }
+ 228   1        
+ 229   1        if(stat_led==0)
+ 230   1        {
+ 231   2          if(stat_main==0)
+ 232   2          {
+ 233   3            HC138_init(4);
+ 234   3            L1 = 0;
+ 235   3            L2 = 1;
+ 236   3          }
+ 237   2          else 
+ 238   2          {
+ 239   3            HC138_init(4);
+ 240   3            L1 = 1;
+C51 COMPILER V9.59.0.0   MIAN                                                              03/29/2022 16:54:35 PAGE 5   
+
+ 241   3            L2 = 0;
+ 242   3          }
+ 243   2          if((dat_adc<150)||((dat_adc>=250)&&(dat_adc<350)))
+ 244   2          {
+ 245   3            HC138_init(4);
+ 246   3            L3 = 1;
+ 247   3          }
+ 248   2          else {HC138_init(4);L3 = 0;}
+ 249   2          if((dat_ne555<1000)||((dat_ne555>=5000)&&(dat_ne555<10000)))
+ 250   2          {
+ 251   3            HC138_init(4);
+ 252   3            L4 = 1;
+ 253   3          }
+ 254   2          else {HC138_init(4);L4 = 0;}
+ 255   2          if(flag==1)
+ 256   2          {
+ 257   3            HC138_init(4);
+ 258   3            L5 = 1;
+ 259   3          }
+ 260   2          if(flag==2) 
+ 261   2          {
+ 262   3            HC138_init(4);
+ 263   3            L5 = 0;
+ 264   3          }
+ 265   2        }
+ 266   1        else {HC138_init(4);P0 = 0xff;}
+ 267   1        
+ 268   1      }
+ 269          void Key_Scan()
+ 270          {
+ 271   1        if(S4==0)
+ 272   1        {
+ 273   2          Delay(20);
+ 274   2          if(S4==0)
+ 275   2          {
+ 276   3              stat_main=~stat_main;
+ 277   3              while(S4==0)
+ 278   3              {
+ 279   4                Display_max();
+ 280   4              }
+ 281   3          }
+ 282   2        }
+ 283   1        if(S5==0)
+ 284   1        {
+ 285   2          Delay(20);
+ 286   2          if(S5==0)
+ 287   2          {
+ 288   3            if(flag==1)
+ 289   3            {
+ 290   4              flag=2;
+ 291   4            }
+ 292   3            else if(flag==2)
+ 293   3            {
+ 294   4              flag=1;
+ 295   4            }
+ 296   3            //  stat_dac=~stat_dac;
+ 297   3              while(S5==0)
+ 298   3              {
+ 299   4                Display_max();
+ 300   4              }
+ 301   3          }
+ 302   2        }
+C51 COMPILER V9.59.0.0   MIAN                                                              03/29/2022 16:54:35 PAGE 6   
+
+ 303   1        
+ 304   1        if(S6==0)
+ 305   1        {
+ 306   2          Delay(20);
+ 307   2          if(S6==0)
+ 308   2          {
+ 309   3            stat_led=~stat_led;
+ 310   3            while(S6==0)
+ 311   3            {
+ 312   4              Display_max();
+ 313   4            }
+ 314   3          }
+ 315   2        }
+ 316   1        if(S7==0)
+ 317   1        {
+ 318   2          Delay(20);
+ 319   2          if(S7==0)
+ 320   2          {
+ 321   3              stat_nixie=~stat_nixie;
+ 322   3              while(S7==0)
+ 323   3              {
+ 324   4                Display_max();
+ 325   4              }
+ 326   3          }
+ 327   2        }
+ 328   1      }
+ 329          
+ 330          
+ 331          
+ 332          
+ 333          //=====================================================================
+ 334          void System_init()
+ 335          {
+ 336   1        HC138_init(5);
+ 337   1        P0 = 0x00;
+ 338   1        HC138_init(4);
+ 339   1        P0 = 0xff;
+ 340   1      }
+ 341          
+ 342          void main()
+ 343          {
+ 344   1        System_init();
+ 345   1        Timer_init();
+ 346   1        while(1)
+ 347   1        {
+ 348   2          Key_Scan();
+ 349   2          Display_max();
+ 350   2        }
+ 351   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1117    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

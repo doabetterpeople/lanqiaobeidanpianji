@@ -1,0 +1,167 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 15:26:59 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          
+   3          sbit L1 = P0^0;
+   4          sbit L2 = P0^1;
+   5          sbit L3 = P0^2;
+   6          sbit L4 = P0^3;
+   7          sbit L5 = P0^4;
+   8          sbit L6 = P0^5;
+   9          
+  10          sbit S4 = P3^3;
+  11          sbit S5 = P3^2;
+  12          sbit S6 = P3^1;
+  13          sbit S7 = P3^0;
+  14          
+  15          void Delay(unsigned int t)
+  16          {
+  17   1        while(t--);
+  18   1      }
+  19          
+  20          void HC138_init(unsigned char channel)
+  21          {
+  22   1        switch(channel)
+  23   1        {
+  24   2          case 4: P2 = (P2&0x1f)|0x80;break;
+  25   2          case 5: P2 = (P2&0x1f)|0xa0;break;
+  26   2          case 6: P2 = (P2&0x1f)|0xc0;break;
+  27   2          case 7: P2 = (P2&0x1f)|0xe0;break;
+  28   2        }
+  29   1      }
+  30          void System_Init()
+  31          {
+  32   1        HC138_init(5);
+  33   1        P0 = 0x00;
+  34   1        HC138_init(4);
+  35   1        P0 = 0xff;
+  36   1      }
+  37          unsigned char flag;
+  38          void Key_Scan()
+  39          {
+  40   1        if(S7==0)
+  41   1        {
+  42   2          Delay(10);
+  43   2          if(S7==0&&flag==0)
+  44   2          {
+  45   3            flag=1;
+  46   3            while(S7==0);
+  47   3            HC138_init(4);
+  48   3            L1 = 0;
+  49   3          }
+  50   2          if(S7==0&&flag==1)
+  51   2          {
+  52   3            flag=0;
+  53   3            while(S7==0);
+  54   3            HC138_init(4);
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 15:26:59 PAGE 2   
+
+  55   3            L1 = 1;
+  56   3          }
+  57   2        }
+  58   1        if(S6==0)
+  59   1        {
+  60   2          Delay(10);
+  61   2          if(S6==0&&flag==0)
+  62   2          {
+  63   3            flag=2;
+  64   3            while(S6==0);
+  65   3            HC138_init(4);
+  66   3            L2 = 0;
+  67   3          }
+  68   2          if(S6==0&&flag==2)
+  69   2          {
+  70   3            flag=0;
+  71   3            while(S6==0);
+  72   3            HC138_init(4);
+  73   3            L2 = 1;
+  74   3          }
+  75   2        }
+  76   1        if(flag==1)
+  77   1        {
+  78   2          if(S5==0)
+  79   2          {
+  80   3            Delay(100);
+  81   3            while(S5==0)
+  82   3            {
+  83   4              HC138_init(4);
+  84   4              L3 = 0;
+  85   4              while(S5==0);
+  86   4              HC138_init(4);
+  87   4              L3 = 1;
+  88   4            }
+  89   3          }
+  90   2          if(S4==0)
+  91   2          {
+  92   3            Delay(100);
+  93   3            while(S4==0)
+  94   3            {
+  95   4              HC138_init(4);
+  96   4              L4 = 0;
+  97   4              while(S4==0);
+  98   4              HC138_init(4);
+  99   4              L4 = 1;
+ 100   4            }
+ 101   3          } 
+ 102   2        }
+ 103   1        if(flag==2)
+ 104   1        {
+ 105   2          if(S5==0)
+ 106   2          {
+ 107   3            Delay(100);
+ 108   3            while(S5==0)
+ 109   3            {
+ 110   4              HC138_init(4);
+ 111   4              L5 = 0;
+ 112   4              while(S5==0);
+ 113   4              HC138_init(4);
+ 114   4              L5 = 1;
+ 115   4            }
+ 116   3          }
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 15:26:59 PAGE 3   
+
+ 117   2          if(S4==0)
+ 118   2          {
+ 119   3            Delay(100);
+ 120   3            while(S4==0)
+ 121   3            {
+ 122   4              HC138_init(4);
+ 123   4              L6 = 0;
+ 124   4              while(S4==0);
+ 125   4              HC138_init(4);
+ 126   4              L6 = 1;
+ 127   4            }
+ 128   3          } 
+ 129   2        }
+ 130   1      }
+ 131          
+ 132          void main()
+ 133          {
+ 134   1        System_Init();
+ 135   1        while(1)
+ 136   1        {
+ 137   2          Key_Scan();
+ 138   2        }
+ 139   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    327    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

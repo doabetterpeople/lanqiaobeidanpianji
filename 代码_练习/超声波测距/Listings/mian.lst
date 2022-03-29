@@ -1,0 +1,142 @@
+C51 COMPILER V9.59.0.0   MIAN                                                              02/20/2022 16:28:50 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MIAN
+OBJECT MODULE PLACED IN .\Objects\mian.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE mian.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\mian
+                    -.lst) TABS(2) OBJECT(.\Objects\mian.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "absacc.h"
+   3          #include "intrins.h"
+   4          
+   5          sbit TX = P1^0;
+   6          sbit RX = P1^1;
+   7          unsigned int distance=0;
+   8          unsigned char code NixieTable[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,
+   9                                      0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8e,
+  10                                      0xbf,0x7f};
+  11                                    
+  12          void Delay12us()    //@12.000MHz
+  13          {
+  14   1        unsigned char i;
+  15   1      
+  16   1        _nop_();
+  17   1        _nop_();
+  18   1        i = 33;
+  19   1        while (--i);
+  20   1      }
+  21          
+  22          void Send()
+  23          {
+  24   1        unsigned char i;
+  25   1        for(i=0;i<8;i++)
+  26   1        {
+  27   2          TX = 1;
+  28   2          Delay12us();
+  29   2          TX = 0;
+  30   2          Delay12us();
+  31   2        }
+  32   1      }
+  33          
+  34          void Distance_test()
+  35          {
+  36   1        unsigned char time;
+  37   1        TMOD &= 0x0f;
+  38   1        TL1 = 0x00;
+  39   1        TH1 = 0x00;
+  40   1        Send();
+  41   1        TR1 = 1;
+  42   1        while((RX==1)&&(TF1==0));
+  43   1        TR1 = 0;
+  44   1          
+  45   1        if(TF1==0)
+  46   1        {
+  47   2          time = TH1;
+  48   2          time = (time<<8)|TL1;
+  49   2          distance = ((time/10)*17)/100+3;
+  50   2        }
+  51   1        else
+  52   1        {
+  53   2          TF1 = 0;
+  54   2          distance = 999;
+C51 COMPILER V9.59.0.0   MIAN                                                              02/20/2022 16:28:50 PAGE 2   
+
+  55   2        }
+  56   1      }
+  57          void Nixie_Display(unsigned char addr,unsigned char dat)
+  58          {
+  59   1        XBYTE[0XC000] = 0X01 << addr;
+  60   1        XBYTE[0XE000] = dat;
+  61   1      }
+  62          
+  63          void Delay(unsigned int t)
+  64          {
+  65   1        while(t--);
+  66   1      }
+  67          void Nixie_Run()
+  68          {
+  69   1        if(distance == 999)
+  70   1        {
+  71   2          Nixie_Display(0,0x8e);
+  72   2          Delay(500);
+  73   2        }
+  74   1        else 
+  75   1        {
+  76   2          Nixie_Display(0,0xff);
+  77   2          Delay(500);
+  78   2          Nixie_Display(1,0xff);
+  79   2          Delay(500);
+  80   2          Nixie_Display(2,0xff);
+  81   2          Delay(500);
+  82   2          Nixie_Display(3,0xff);
+  83   2          Delay(500);
+  84   2          Nixie_Display(4,0xff);
+  85   2          Delay(500);
+  86   2          Nixie_Display(5,NixieTable[distance/100]);
+  87   2          Delay(500);
+  88   2          Nixie_Display(6,NixieTable[(distance%10)/10]);
+  89   2          Delay(500);
+  90   2          Nixie_Display(7,NixieTable[distance%10]);
+  91   2          Delay(500);
+  92   2          XBYTE[0XC000] = 0XFF;
+  93   2          XBYTE[0XE000] = 0XFF;
+  94   2        }
+  95   1      }
+  96          
+  97          void Delay_S(unsigned char t)
+  98          {
+  99   1        while(t--)
+ 100   1        {
+ 101   2          Nixie_Run();
+ 102   2        }
+ 103   1      }
+ 104          
+ 105          void main()
+ 106          {
+ 107   1        XBYTE[0X8000] = 0xff;
+ 108   1        XBYTE[0XA000] = 0x00;
+ 109   1        while(1)
+ 110   1        {
+ 111   2          Distance_test();
+ 112   2          Delay_S(10);
+ 113   2        }
+ 114   1      }
+
+
+C51 COMPILER V9.59.0.0   MIAN                                                              02/20/2022 16:28:50 PAGE 3   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    331    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

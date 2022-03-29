@@ -1,0 +1,98 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              03/23/2022 17:26:00 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "absacc.h"
+   3          #include "onewire.h"
+   4          #include "Nixie.h"
+   5          
+   6          unsigned char LSB,MSB;
+   7          unsigned char temp;
+   8          
+   9          //void Temp_Show();
+  10          void Delay(unsigned int t)
+  11          {
+  12   1        while(t--);
+  13   1      }
+  14          
+  15          
+  16          void DS18B20_temp()
+  17          {
+  18   1        init_ds18b20();
+  19   1        Write_DS18B20(0xcc);
+  20   1        Write_DS18B20(0x44);
+  21   1        Delay(10000);
+  22   1        Write_DS18B20(0xcc);
+  23   1        Write_DS18B20(0xbe);
+  24   1        
+  25   1        LSB = Read_DS18B20();
+  26   1        MSB = Read_DS18B20();
+  27   1      
+  28   1        init_ds18b20();
+  29   1        temp = (MSB<<8)|LSB;
+  30   1        if((temp&0xf800) == 0x0000)
+  31   1        {
+  32   2          temp = temp >>4;
+  33   2          temp *= 10;
+  34   2          temp = temp + (LSB&0x0f)*0.0625;
+  35   2        }
+  36   1        
+  37   1        
+  38   1        
+  39   1      }
+  40          
+  41          //void Temp_Show()
+  42          //{
+  43          //  Display_NixieBit(7,NixieTableNoDot[temp%10]);
+  44          //  Delay_Nixie(200);
+  45          //  Display_NixieBit(6,NixieTableDot[(temp%100)/10]);
+  46          //  Delay_Nixie(200);
+  47          //  Display_NixieBit(5,NixieTableNoDot[temp/100]);
+  48          //  Delay_Nixie(200);
+  49          //  
+  50          //  Display_NixieBit(4,0xff);
+  51          //  Delay_Nixie(100);
+  52          //  Display_NixieBit(3,0xff);
+  53          //  Delay_Nixie(100);
+  54          //  Display_NixieBit(2,0xff);
+C51 COMPILER V9.59.0.0   MAIN                                                              03/23/2022 17:26:00 PAGE 2   
+
+  55          //  Delay_Nixie(100);
+  56          //  Display_NixieBit(1,0xff);
+  57          //  Delay_Nixie(100);
+  58          //  Display_NixieBit(0,0xff);
+  59          //  Delay_Nixie(100);
+  60          //  
+  61          //  Display_All(0xff);
+  62          //}
+  63          
+  64          void Check()
+  65          {
+  66   1        if(temp>250)
+  67   1        {
+  68   2          P0^0 = 1;
+*** ERROR C141 IN LINE 68 OF main.c: syntax error near '=', expected ';'
+  69   2          Delay(60000);
+  70   2          P0^0 = 0;
+*** ERROR C141 IN LINE 70 OF main.c: syntax error near '=', expected ';'
+  71   2          Delay(60000);
+  72   2        }
+  73   1      }
+  74          
+  75          void main()
+  76          {
+  77   1        while(1)
+  78   1        {
+  79   2          DS18B20_temp();
+  80   2      //    Temp_Show();
+  81   2        }
+  82   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  2 ERROR(S)

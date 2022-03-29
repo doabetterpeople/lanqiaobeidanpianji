@@ -1,0 +1,104 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2022 13:02:02 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          
+   3          void HC138_Init(unsigned char channel)
+   4          {
+   5   1        switch(channel)
+   6   1        {
+   7   2          case 4: P2 = (P2&0x1f) | 0x80;break;
+   8   2          case 5: P2 = (P2&0x1f) | 0xa0;break;
+   9   2          case 6: P2 = (P2&0x1f) | 0xc0;break;
+  10   2          case 7: P2 = (P2&0x1f) | 0xe0;break;
+  11   2        }
+  12   1      }
+  13          
+  14          void System_Init()
+  15          {
+  16   1        HC138_Init(5);
+  17   1        P0 = 0x00;
+  18   1        HC138_Init(4);
+  19   1        P0 = 0xff;
+  20   1      }
+  21          //=============´®¿Ú³õÊ¼»¯===========
+  22          void UART_Init()
+  23          {
+  24   1        TMOD  = 0X20;
+  25   1        TH1 = 0Xfd;
+  26   1        TL1 = 0Xfd; 
+  27   1        SCON = 0X50;
+  28   1        AUXR &= 0X40;
+  29   1        TR1 = 1;
+  30   1        EA = 1;
+  31   1        ES = 1;
+  32   1      
+  33   1      }
+  34          unsigned char command = 0x00;
+  35          void UART_Service() interrupt 4
+  36          {
+  37   1        while(RI==1)
+  38   1        {
+  39   2          command = SBUF;
+  40   2          RI=0;
+  41   2        }
+  42   1      }
+  43          
+  44          void Send_Byte(unsigned char dat)
+  45          {
+  46   1        SBUF = dat;
+  47   1        while(TI==0);
+  48   1        TI=0;
+  49   1      }
+  50          
+  51          void Send_str(unsigned char *str)
+  52          {
+  53   1        while(*str!='\0')
+  54   1        {
+C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2022 13:02:02 PAGE 2   
+
+  55   2          Send_Byte(*str++);
+  56   2        }
+  57   1      }
+  58          
+  59          void LED_Run()
+  60          {
+  61   1        if(command!=0x00)
+  62   1        switch(command&0Xf0)
+  63   1        {
+  64   2          case 0xa0: P0 = (P0|0x0f)&(~command|0xf0);command = 0x00;break;
+  65   2          case 0xb0: P0 = (P0|0xf0)&((~command<<4)|0x0f);command = 0x00;break;
+  66   2          case 0xc0: Send_str("The System is Runing...\r\n");command = 0x00;break;
+  67   2        }
+  68   1      }
+  69          void main()
+  70          {
+  71   1        System_Init();
+  72   1        UART_Init();
+  73   1        Send_str("Welcome to LQB System\r\n");
+  74   1        while(1)
+  75   1        {
+  76   2          LED_Run();
+  77   2        }
+  78   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    226    ----
+   CONSTANT SIZE    =     50    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

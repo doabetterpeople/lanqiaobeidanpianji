@@ -1,0 +1,270 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              03/07/2022 12:25:13 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          
+   3          sbit S4 = P3^3;
+   4          sbit S5 = P3^2;
+   5          unsigned char led_stat= 0xff;
+   6          unsigned char code NixieTable[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,
+   7                                      0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8e,
+   8                                      0xbf,0x7f};
+   9          
+  10          void Delay(unsigned int t)
+  11          {
+  12   1        while(t--);
+  13   1      }
+  14          
+  15          void HC138_Init(unsigned char channel)
+  16          {
+  17   1        switch(channel)
+  18   1        {
+  19   2          case 4: P2 = (P2&0x1f) |0x80;break;
+  20   2          case 5: P2 = (P2&0x1f) |0xa0;break;
+  21   2          case 6: P2 = (P2&0x1f) |0xc0;break;
+  22   2          case 7: P2 = (P2&0x1f) |0xe0;break;
+  23   2        }
+  24   1      }
+  25          
+  26          void System_Init()  //系统初始化
+  27          {
+  28   1        HC138_Init(5);
+  29   1        P0 = 0x00;
+  30   1        HC138_Init(4);
+  31   1        P0 = 0xff;
+  32   1      }
+  33          
+  34          void Check()
+  35          {
+  36   1        unsigned char i;
+  37   1        for(i=0;i<8;i++)
+  38   1        {
+  39   2          HC138_Init(4);
+  40   2          P0 = 0xfe <<i;
+  41   2          Delay(60000);
+  42   2          Delay(60000);
+  43   2        }
+  44   1        for(i=0;i<8;i++)
+  45   1        {
+  46   2          HC138_Init(4);
+  47   2          P0 = ~(0xfe <<i);
+  48   2          Delay(60000);
+  49   2          Delay(60000);
+  50   2        }
+  51   1        for(i=0;i<8;i++)
+  52   1        {
+  53   2          HC138_Init(6);
+  54   2          P0 = 0x01<<i;
+C51 COMPILER V9.59.0.0   MAIN                                                              03/07/2022 12:25:13 PAGE 2   
+
+  55   2          HC138_Init(7);
+  56   2          P0 = 0x00;
+  57   2          Delay(60000);
+  58   2          Delay(60000);
+  59   2          P0 = 0xff;
+  60   2        }
+  61   1      }
+  62          
+  63          //==========定时器初始化================
+  64          void TImer0_Init() //定时器0，8位
+  65          {
+  66   1        TMOD = 0x01;
+  67   1        TH0 = (65535-50000)/256;
+  68   1        TL0 = (65535-50000)%256;
+  69   1        
+  70   1        ET0 = 1;
+  71   1        EA = 1;
+  72   1        TR0 = 1;  //开启定时器
+  73   1      }
+  74          unsigned char count,count_s,count_m,count_h;
+  75          void Timer0_Service() interrupt 1
+  76          {
+  77   1        TH0 = (65535-50000)/256;
+  78   1        TL0 = (65535-50000)%256;
+  79   1        count++;
+  80   1        if(count == 20)
+  81   1        {
+  82   2          count=0;
+  83   2          count_s++;
+  84   2          if(count_s==60)
+  85   2          {
+  86   3            count_s=0;
+  87   3            count_m++;
+  88   3            if(count_m==60)
+  89   3            {
+  90   4              count_h++;
+  91   4              count_m=0;
+  92   4              if(count_h==12)
+  93   4              {
+  94   5                count_h=0;
+  95   5              }
+  96   4            }
+  97   3          }
+  98   2        }
+  99   1      }
+ 100          //==================================================
+ 101          void Nixie_Display(unsigned char pose,unsigned char dat)
+ 102          {
+ 103   1        HC138_Init(6);
+ 104   1        P0 = 0x01 << pose;
+ 105   1        HC138_Init(7);
+ 106   1        P0 = dat;
+ 107   1      }
+ 108          void Nixie_Run()
+ 109          {
+ 110   1        Nixie_Display(7,NixieTable[count_s%10]);
+ 111   1        Delay(500);
+ 112   1        Nixie_Display(6,NixieTable[count_s/10]);
+ 113   1        Delay(500);
+ 114   1        Nixie_Display(5,NixieTable[16]);
+ 115   1        Delay(500);
+ 116   1        Nixie_Display(4,NixieTable[count_m%10]);
+C51 COMPILER V9.59.0.0   MAIN                                                              03/07/2022 12:25:13 PAGE 3   
+
+ 117   1        Delay(500);
+ 118   1        Nixie_Display(3,NixieTable[count_m/10]);
+ 119   1        Delay(500);
+ 120   1        Nixie_Display(2,NixieTable[16]);
+ 121   1        Delay(500);
+ 122   1        Nixie_Display(1,NixieTable[count_h%10]);
+ 123   1        Delay(500);
+ 124   1        Nixie_Display(0,NixieTable[count_h/10]);
+ 125   1        Delay(500);
+ 126   1        HC138_Init(6);
+ 127   1        P0 = 0xff;
+ 128   1        HC138_Init(7);
+ 129   1        P0 = 0xff;
+ 130   1      }
+ 131          
+ 132          void Delay_key(unsigned int t)
+ 133          {
+ 134   1        while(t--)
+ 135   1        {
+ 136   2          Nixie_Run();
+ 137   2        }
+ 138   1      }
+ 139          void Key_Scan()
+ 140          {
+ 141   1        if(S4==0)
+ 142   1        {
+ 143   2          Delay(10);
+ 144   2          if(S4==0)
+ 145   2          {
+ 146   3            while(S4==0)
+ 147   3            {
+ 148   4              Nixie_Run();
+ 149   4            }
+ 150   3            HC138_Init(4);
+ 151   3            led_stat=(led_stat|0x40)& (~led_stat | 0xbf);
+ 152   3            P0 = led_stat;
+ 153   3            P2 = (P2 & 0x1f) | 0x00;
+ 154   3          }
+ 155   2        }
+ 156   1        if(S5==0)
+ 157   1        {
+ 158   2          Delay(10);
+ 159   2          if(S5==0)
+ 160   2          {
+ 161   3            while(S5==0)
+ 162   3            {
+ 163   4              Nixie_Run();
+ 164   4            }
+ 165   3            HC138_Init(4);
+ 166   3            led_stat=(led_stat|0x80)& (~led_stat | 0x7f);
+ 167   3            P0 = led_stat;
+ 168   3            P2 = (P2 & 0x1f) | 0x00;
+ 169   3          }
+ 170   2        }
+ 171   1      }
+ 172          //========串口初始化===========
+ 173          unsigned char flag=0x00;
+ 174          void UartInit(void)   //9600bps@11.0592MHz
+ 175          {
+ 176   1        SCON = 0x50;    //8位数据,可变波特率
+ 177   1        AUXR &= 0xBF;   //定时器1时钟为Fosc/12,即12T
+ 178   1        AUXR &= 0xFE;   //串口1选择定时器1为波特率发生器
+C51 COMPILER V9.59.0.0   MAIN                                                              03/07/2022 12:25:13 PAGE 4   
+
+ 179   1        TMOD &= 0x0F;   //设定定时器1为16位自动重装方式
+ 180   1        TL1 = 0xE8;   //设定定时初值
+ 181   1        TH1 = 0xFF;   //设定定时初值
+ 182   1        TR1 = 1;    //启动定时器1
+ 183   1        EA = 1;
+ 184   1        ES = 1;
+ 185   1      }
+ 186          
+ 187          void UART_Service() interrupt 4
+ 188          {
+ 189   1        while(RI==1)
+ 190   1        {
+ 191   2          flag = SBUF;
+ 192   2          RI=0;
+ 193   2        }
+ 194   1      }
+ 195          
+ 196          void Send_Byte(unsigned char dat)
+ 197          {
+ 198   1        SBUF = dat;
+ 199   1        while(TI==0);
+ 200   1        TI=0;
+ 201   1      }
+ 202          
+ 203          void Working()
+ 204          {
+ 205   1        if(flag!=0x00)
+ 206   1        {
+ 207   2          switch(flag&0xf0)
+ 208   2          {
+ 209   3            case 0xa0: 
+ 210   3              HC138_Init(4);
+ 211   3              led_stat = (led_stat|0x0f)&(~flag|0xf0);
+ 212   3              P0=led_stat;
+ 213   3              flag =0x00;
+ 214   3            break;
+ 215   3            case 0xb0:
+ 216   3              Send_Byte((count_h/10 << 4)|(count_h %10));
+ 217   3              Send_Byte((count_m/10 << 4)|(count_m %10));
+ 218   3              Send_Byte((count_s/10 << 4)|(count_s %10));
+ 219   3              flag=0x00;
+ 220   3            break;
+ 221   3          }
+ 222   2        }
+ 223   1      }
+ 224          
+ 225          
+ 226          void main()
+ 227          {
+ 228   1        System_Init();
+ 229   1        Check();
+ 230   1        TImer0_Init();
+ 231   1        UartInit();
+ 232   1        while(1)
+ 233   1        {   
+ 234   2          Key_Scan();
+ 235   2          Nixie_Run();
+ 236   2          Working();
+ 237   2        }
+ 238   1      }
+
+
+C51 COMPILER V9.59.0.0   MAIN                                                              03/07/2022 12:25:13 PAGE 5   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    725    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

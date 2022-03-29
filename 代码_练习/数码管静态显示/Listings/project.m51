@@ -1,0 +1,179 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    02/11/2022  13:39:47  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\project PRINT (.\Listings\project.m51) RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\main.obj (MAIN)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  .\Objects\project (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0053H     UNIT         ?PR?NIXIE_RUN?MAIN
+            CODE    0056H     003AH     UNIT         ?PR?_HC138_INIT?MAIN
+            CODE    0090H     001EH     UNIT         ?PR?_NIXIE_DISPLAY?MAIN
+            CODE    00AEH     0012H     UNIT         ?CO?MAIN
+            CODE    00C0H     000CH     UNIT         ?C_C51STARTUP
+            CODE    00CCH     000BH     UNIT         ?PR?_DELAY?MAIN
+            CODE    00D7H     0009H     UNIT         ?PR?SYSTEM_INIT?MAIN
+            CODE    00E0H     0008H     UNIT         ?PR?MAIN?MAIN
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\project (MAIN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+
+?PR?MAIN?MAIN
+  +--> ?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?NIXIE_RUN?MAIN
+
+?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?_HC138_INIT?MAIN
+
+?PR?NIXIE_RUN?MAIN
+  +--> ?CO?MAIN
+  +--> ?PR?_NIXIE_DISPLAY?MAIN
+  +--> ?PR?_DELAY?MAIN
+  +--> ?PR?_HC138_INIT?MAIN
+
+?PR?_NIXIE_DISPLAY?MAIN
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/11/2022  13:39:47  PAGE 2
+
+
+  +--> ?PR?_HC138_INIT?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\project (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:00D7H         PUBLIC        System_Init
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00C0H         PUBLIC        P4
+  D:00C8H         PUBLIC        P5
+  D:00E8H         PUBLIC        P6
+  D:00F8H         PUBLIC        P7
+  D:00A8H         PUBLIC        IE
+  C:0003H         PUBLIC        Nixie_Run
+  D:00B8H         PUBLIC        IP
+  C:005DH         PUBLIC        _HC138_Init
+  D:00D8H         PUBLIC        CCON
+  C:00E0H         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:0090H         PUBLIC        _Nixie_Display
+  C:00AEH         PUBLIC        NixieTable
+  C:00CCH         PUBLIC        _Delay
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        t
+  C:00CCH         LINE#         7
+  C:00CCH         LINE#         8
+  C:00CCH         LINE#         9
+  C:00D6H         LINE#         10
+  -------         ENDPROC       _DELAY
+  -------         PROC          L?0028
+  -------         ENDPROC       L?0028
+  -------         PROC          _HC138_INIT
+  D:0007H         SYMBOL        x
+  C:005DH         LINE#         12
+  C:005DH         LINE#         13
+  C:005DH         LINE#         14
+  C:006CH         LINE#         15
+  C:006CH         LINE#         16
+  C:0075H         LINE#         17
+  C:007EH         LINE#         18
+  C:0087H         LINE#         19
+  C:008FH         LINE#         20
+  C:008FH         LINE#         21
+  -------         ENDPROC       _HC138_INIT
+  -------         PROC          SYSTEM_INIT
+  C:00D7H         LINE#         23
+  C:00D7H         LINE#         24
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/11/2022  13:39:47  PAGE 3
+
+
+  C:00D7H         LINE#         25
+  C:00D9H         LINE#         26
+  C:00D9H         LINE#         27
+  C:00DCH         LINE#         28
+  C:00DFH         LINE#         29
+  -------         ENDPROC       SYSTEM_INIT
+  -------         PROC          _NIXIE_DISPLAY
+  D:0006H         SYMBOL        i
+  D:0005H         SYMBOL        dat
+  C:0090H         LINE#         31
+  C:0092H         LINE#         32
+  C:0092H         LINE#         33
+  C:0097H         LINE#         34
+  C:00A6H         LINE#         35
+  C:00ABH         LINE#         36
+  C:00ADH         LINE#         37
+  -------         ENDPROC       _NIXIE_DISPLAY
+  -------         PROC          NIXIE_RUN
+  -------         DO            
+  D:0003H         SYMBOL        i
+  D:0002H         SYMBOL        j
+  -------         ENDDO         
+  C:0003H         LINE#         39
+  C:0003H         LINE#         40
+  C:0003H         LINE#         42
+  C:000FH         LINE#         43
+  C:000FH         LINE#         44
+  C:001BH         LINE#         45
+  C:001BH         LINE#         46
+  C:0026H         LINE#         47
+  C:002DH         LINE#         48
+  C:0030H         LINE#         49
+  C:0033H         LINE#         51
+  C:003FH         LINE#         52
+  C:003FH         LINE#         53
+  C:0041H         LINE#         54
+  C:0041H         LINE#         55
+  C:0044H         LINE#         56
+  C:004BH         LINE#         57
+  C:0052H         LINE#         58
+  C:0055H         LINE#         60
+  -------         ENDPROC       NIXIE_RUN
+  -------         PROC          MAIN
+  C:00E0H         LINE#         61
+  C:00E0H         LINE#         62
+  C:00E0H         LINE#         63
+  C:00E3H         LINE#         64
+  C:00E3H         LINE#         65
+  C:00E3H         LINE#         66
+  C:00E6H         LINE#         67
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+Program Size: data=9.0 xdata=0 code=232
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

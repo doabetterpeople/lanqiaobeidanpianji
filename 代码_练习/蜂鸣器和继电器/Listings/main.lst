@@ -1,0 +1,96 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 13:19:19 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          
+   3          void Delay(unsigned int t)
+   4          {
+   5   1        while(t--);
+   6   1        while(t--);
+   7   1      }
+   8          
+   9          void HC138_Init(unsigned char x)   //HC138 INIT
+  10          {
+  11   1        switch(x)
+  12   1        {
+  13   2          case 4: P2 =(P2&0x1f)|0x80;break; 
+  14   2          case 5: P2 =(P2&0x1f)|0xa0;break; 
+  15   2          case 6: P2 =(P2&0x1f)|0xc0;break; 
+  16   2          case 7: P2 =(P2&0x1f)|0xe0;break; 
+  17   2        }
+  18   1      }
+  19          
+  20          void System_Init()   //系统初始化
+  21          {
+  22   1        HC138_Init(5);
+  23   1        P0 = 0x00;
+  24   1        HC138_Init(4);
+  25   1        P0 = 0xff;
+  26   1      }
+  27          
+  28          void LED_Run()    //
+  29          {
+  30   1        unsigned char i;
+  31   1        for(i=0;i<3;i++)
+  32   1        {
+  33   2          HC138_Init(4);
+  34   2          P0 = 0x00;
+  35   2          Delay(60000);
+  36   2          P0 = 0xff;
+  37   2          Delay(60000);
+  38   2        }
+  39   1        for(i=0;i<8;i++)
+  40   1        {
+  41   2          HC138_Init(4);
+  42   2          P0 = 0xfe << i; 
+  43   2          Delay(60000);
+  44   2        }
+  45   1        
+  46   1        HC138_Init(5);
+  47   1        P0 = 0x10;
+  48   1        Delay(60000);
+  49   1        
+  50   1        for(i=0;i<8;i++)
+  51   1        {
+  52   2          HC138_Init(4);
+  53   2          P0 = ~(0xfe << i); 
+  54   2          Delay(60000);
+C51 COMPILER V9.59.0.0   MAIN                                                              02/11/2022 13:19:19 PAGE 2   
+
+  55   2        }
+  56   1        
+  57   1        HC138_Init(5);
+  58   1        P0 = 0x40;
+  59   1        Delay(60000);
+  60   1        P0 = 0x00;
+  61   1      }
+  62          
+  63          void main()
+  64          {
+  65   1        System_Init();
+  66   1        while(1)
+  67   1        {
+  68   2          LED_Run();
+  69   2        }
+  70   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    227    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

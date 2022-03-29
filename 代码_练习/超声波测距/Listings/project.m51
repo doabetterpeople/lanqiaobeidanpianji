@@ -1,0 +1,264 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    02/20/2022  16:28:50  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\mian.obj TO .\Objects\project PRINT (.\Listings\project.m51) RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\mian.obj (MIAN)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C?UIDIV)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C?SIDIV)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\Objects\project (MIAN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0002H     UNIT         ?DT?MIAN
+            IDATA   000AH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     009CH     UNIT         ?PR?NIXIE_RUN?MIAN
+            CODE    009FH     008CH     UNIT         ?C_C51STARTUP
+            CODE    012BH     008BH     UNIT         ?C?LIB_CODE
+            CODE    01B6H     0041H     UNIT         ?PR?DISTANCE_TEST?MIAN
+            CODE    01F7H     001AH     UNIT         ?PR?SEND?MIAN
+            CODE    0211H     0015H     UNIT         ?PR?_NIXIE_DISPLAY?MIAN
+            CODE    0226H     0015H     UNIT         ?PR?_DELAY?MIAN
+            CODE    023BH     0015H     UNIT         ?PR?MAIN?MIAN
+            CODE    0250H     0012H     UNIT         ?CO?MIAN
+            CODE    0262H     000EH     UNIT         ?PR?_DELAY_S?MIAN
+            CODE    0270H     0007H     UNIT         ?PR?DELAY12US?MIAN
+            CODE    0277H     0005H     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\project (MIAN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MIAN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MIAN
+  +--> ?PR?DISTANCE_TEST?MIAN
+  +--> ?PR?_DELAY_S?MIAN
+
+?PR?DISTANCE_TEST?MIAN
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/20/2022  16:28:50  PAGE 2
+
+
+  +--> ?PR?SEND?MIAN
+
+?PR?SEND?MIAN
+  +--> ?PR?DELAY12US?MIAN
+
+?PR?_DELAY_S?MIAN
+  +--> ?PR?NIXIE_RUN?MIAN
+
+?PR?NIXIE_RUN?MIAN
+  +--> ?PR?_NIXIE_DISPLAY?MIAN
+  +--> ?PR?_DELAY?MIAN
+  +--> ?CO?MIAN
+
+?PR?_DELAY?MIAN
+  +--> ?PR?_NIXIE_DISPLAY?MIAN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\project (MIAN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MIAN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00C0H         PUBLIC        P4
+  D:00C8H         PUBLIC        P5
+  D:00E8H         PUBLIC        P6
+  D:00F8H         PUBLIC        P7
+  C:01F7H         PUBLIC        Send
+  D:00A8H         PUBLIC        IE
+  C:0003H         PUBLIC        Nixie_Run
+  D:00B8H         PUBLIC        IP
+  D:00D8H         PUBLIC        CCON
+  C:0262H         PUBLIC        _Delay_S
+  C:023BH         PUBLIC        main
+  B:0090H.1       PUBLIC        RX
+  B:0090H.0       PUBLIC        TX
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  C:0211H         PUBLIC        _Nixie_Display
+  C:0270H         PUBLIC        Delay12us
+  B:0088H.7       PUBLIC        TF1
+  D:008DH         PUBLIC        TH1
+  D:0008H         PUBLIC        distance
+  D:008BH         PUBLIC        TL1
+  C:01B6H         PUBLIC        Distance_test
+  B:0088H.6       PUBLIC        TR1
+  C:0250H         PUBLIC        NixieTable
+  C:0230H         PUBLIC        _Delay
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          DELAY12US
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/20/2022  16:28:50  PAGE 3
+
+
+  -------         DO            
+  D:0007H         SYMBOL        i
+  -------         ENDDO         
+  C:0270H         LINE#         12
+  C:0270H         LINE#         13
+  C:0270H         LINE#         16
+  C:0271H         LINE#         17
+  C:0272H         LINE#         18
+  C:0274H         LINE#         19
+  C:0276H         LINE#         20
+  -------         ENDPROC       DELAY12US
+  -------         PROC          SEND
+  -------         DO            
+  D:0006H         SYMBOL        i
+  -------         ENDDO         
+  C:01F7H         LINE#         22
+  C:01F7H         LINE#         23
+  C:01F7H         LINE#         25
+  C:0203H         LINE#         26
+  C:0203H         LINE#         27
+  C:0205H         LINE#         28
+  C:0208H         LINE#         29
+  C:020AH         LINE#         30
+  C:020DH         LINE#         31
+  C:0210H         LINE#         32
+  -------         ENDPROC       SEND
+  -------         PROC          DISTANCE_TEST
+  -------         DO            
+  D:0007H         SYMBOL        time
+  -------         ENDDO         
+  C:01B6H         LINE#         34
+  C:01B6H         LINE#         35
+  C:01B6H         LINE#         37
+  C:01B9H         LINE#         38
+  C:01BCH         LINE#         39
+  C:01BEH         LINE#         40
+  C:01C1H         LINE#         41
+  C:01C3H         LINE#         42
+  C:01C9H         LINE#         43
+  C:01CBH         LINE#         45
+  C:01CEH         LINE#         46
+  C:01CEH         LINE#         47
+  C:01D0H         LINE#         48
+  C:01D2H         LINE#         49
+  C:01EDH         LINE#         50
+  C:01EEH         LINE#         52
+  C:01EEH         LINE#         53
+  C:01F0H         LINE#         54
+  C:01F6H         LINE#         55
+  C:01F6H         LINE#         56
+  -------         ENDPROC       DISTANCE_TEST
+  -------         PROC          _NIXIE_DISPLAY
+  D:0007H         SYMBOL        addr
+  D:0005H         SYMBOL        dat
+  C:0211H         LINE#         57
+  C:0211H         LINE#         58
+  C:0211H         LINE#         59
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/20/2022  16:28:50  PAGE 4
+
+
+  C:0220H         LINE#         60
+  C:0225H         LINE#         61
+  -------         ENDPROC       _NIXIE_DISPLAY
+  C:0229H         SYMBOL        L?0031
+  -------         PROC          L?0030
+  -------         ENDPROC       L?0030
+  C:0229H         SYMBOL        L?0031
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        t
+  C:0230H         LINE#         63
+  C:0230H         LINE#         64
+  C:0230H         LINE#         65
+  C:023AH         LINE#         66
+  -------         ENDPROC       _DELAY
+  -------         PROC          NIXIE_RUN
+  C:0003H         LINE#         67
+  C:0003H         LINE#         68
+  C:0003H         LINE#         69
+  C:000DH         LINE#         70
+  C:000DH         LINE#         71
+  C:0014H         LINE#         72
+  C:001BH         LINE#         73
+  C:001BH         LINE#         75
+  C:001BH         LINE#         76
+  C:001FH         LINE#         77
+  C:0022H         LINE#         78
+  C:0024H         LINE#         79
+  C:0027H         LINE#         80
+  C:0029H         LINE#         81
+  C:002CH         LINE#         82
+  C:002EH         LINE#         83
+  C:0031H         LINE#         84
+  C:0033H         LINE#         85
+  C:0036H         LINE#         86
+  C:004DH         LINE#         87
+  C:0050H         LINE#         88
+  C:0074H         LINE#         89
+  C:0077H         LINE#         90
+  C:0091H         LINE#         91
+  C:0094H         LINE#         92
+  C:009AH         LINE#         93
+  C:009EH         LINE#         94
+  C:009EH         LINE#         95
+  -------         ENDPROC       NIXIE_RUN
+  -------         PROC          _DELAY_S
+  D:0003H         SYMBOL        t
+  C:0262H         LINE#         97
+  C:0264H         LINE#         98
+  C:0264H         LINE#         99
+  C:026AH         LINE#         100
+  C:026AH         LINE#         101
+  C:026DH         LINE#         102
+  C:026FH         LINE#         103
+  -------         ENDPROC       _DELAY_S
+  -------         PROC          MAIN
+  C:023BH         LINE#         105
+  C:023BH         LINE#         106
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  02/20/2022  16:28:50  PAGE 5
+
+
+  C:023BH         LINE#         107
+  C:0241H         LINE#         108
+  C:0246H         LINE#         109
+  C:0246H         LINE#         110
+  C:0246H         LINE#         111
+  C:0249H         LINE#         112
+  C:024EH         LINE#         113
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MIAN
+
+  -------         MODULE        ?C?UIDIV
+  C:012BH         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+  -------         MODULE        ?C?SIDIV
+  C:0180H         PUBLIC        ?C?SIDIV
+  -------         ENDMOD        ?C?SIDIV
+
+Program Size: data=11.0 xdata=0 code=636
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
