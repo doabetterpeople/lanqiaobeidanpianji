@@ -1,0 +1,785 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "init.h"
+   3          #include "ds1302.h"
+   4          
+   5          sbit S7 = P3^0;
+   6          sbit S6 = P3^1;
+   7          sbit S5 = P3^2;
+   8          sbit S4 = P3^3;
+   9          
+  10          sbit L1 = P0^0;
+  11          
+  12          extern unsigned char Nixie[];
+  13          extern unsigned char duanma[];
+  14          extern unsigned char time[];
+  15          extern unsigned char alarm[];
+  16          extern unsigned char Write_DS1302_addr[];
+  17          extern unsigned char Read_DS1302_addr[];
+  18          unsigned int dat_tem;
+  19          unsigned char time_mode=0; //时钟模式
+  20          unsigned int count_ms; 
+  21          char f_open=0;
+  22          unsigned char alarm_mode;   //闹钟模式
+  23          unsigned char flag_temp;
+  24          unsigned int led_time,led_open,led_flag;
+  25          unsigned int count_x;
+  26          void Display_max();
+  27          void LED_run();
+  28          unsigned char anjian = 0; //闹钟提示界面下是否有按键被按下
+  29          void Timer0_Service() interrupt 1
+  30          {
+  31   1        if(time_mode==0)
+  32   1        {
+  33   2          LED_run();
+  34   2          if(flag_temp==0)
+  35   2          {
+  36   3            DS1302_Read();
+  37   3          }
+  38   2        }
+  39   1        else 
+  40   1        {
+  41   2          unsigned char i;
+  42   2          Write_Ds1302(0x8e,0x00);
+  43   2          for(i=0;i<7;i++)
+  44   2          {
+  45   3            Write_Ds1302(Write_DS1302_addr[i],time[i]);
+  46   3          }
+  47   2          Write_Ds1302(0x8e,0x80);
+  48   2        }
+  49   1      
+  50   1        count_ms++;
+  51   1        Nixie_Display();
+  52   1        if(count_ms>1000)
+  53   1        {
+  54   2          count_ms=0;
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 2   
+
+  55   2          if(f_open ==1)
+  56   2          {f_open=0;}
+  57   2          else if(f_open==0)
+  58   2          {f_open =1;}
+  59   2        }
+  60   1        
+  61   1        if((time[0]==alarm[0])&&(time[1]==alarm[1])&&(time[2]==alarm[2]))
+  62   1        {
+  63   2          led_flag =1;
+  64   2        }
+  65   1        if(count_x<25)
+  66   1        {
+  67   2          if(anjian==0)
+  68   2          {
+  69   3            led_time++;
+  70   3            if(led_time==200)
+  71   3            {
+  72   4              led_time = 0;
+  73   4              count_x++;
+  74   4              if(led_open==1)
+  75   4              {
+  76   5                led_open = 0;
+  77   5              }
+  78   4              else if(led_open == 0)
+  79   4              {
+  80   5              led_open = 1;
+  81   5              }
+  82   4            }
+  83   3          }
+  84   2          else if(anjian==1)
+  85   2          {
+  86   3            led_flag =0;
+  87   3          }
+  88   2        }
+  89   1        else if(count_x==25)
+  90   1        {
+  91   2          led_flag = 0;
+  92   2          count_x =  0;
+  93   2        }
+  94   1      
+  95   1      }
+  96          void LED_run()
+  97          {
+  98   1        if(led_flag==1)
+  99   1        {
+ 100   2          if(led_open==1)
+ 101   2          {
+ 102   3            HC138_init(4,0xfe);
+ 103   3          }
+ 104   2          else if(led_open ==0)
+ 105   2          {
+ 106   3            HC138_init(4,0xff);
+ 107   3          }
+ 108   2        }
+ 109   1        else {HC138_init(4,0xff);}
+ 110   1            
+ 111   1      }
+ 112          void Change()
+ 113          {
+ 114   1        dat_tem = (int)DS18B20_Read();
+ 115   1      }
+ 116          void Temp_Display()
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 3   
+
+ 117          {
+ 118   1        if(dat_tem!=0&&dat_tem!=85)
+ 119   1        {
+ 120   2          Nixie[0] = 16;
+ 121   2          Nixie[1] = 16;
+ 122   2          Nixie[2] = 16;
+ 123   2          Nixie[3] = 16;
+ 124   2          Nixie[4] = 16;
+ 125   2          Nixie[5] = dat_tem/10;
+ 126   2          Nixie[6] = dat_tem%10;
+ 127   2          Nixie[7] = 12;
+ 128   2        }
+ 129   1      }
+ 130          
+ 131          void time_Display()
+ 132          {
+ 133   1        Nixie[0] = time[2]/16;
+ 134   1        Nixie[1] = time[2]%16;
+ 135   1        Nixie[2] = 17;
+ 136   1        Nixie[3] = time[1]/16;
+ 137   1        Nixie[4] = time[1]%16;
+ 138   1        Nixie[5] = 17;
+ 139   1        Nixie[6] = time[0]/16;
+ 140   1        Nixie[7] = time[0]%16;
+ 141   1      }
+ 142          
+ 143          void Time_h()
+ 144          {
+ 145   1        if(f_open==1)
+ 146   1        {
+ 147   2          Nixie[0] = time[2]/16;
+ 148   2          Nixie[1] = time[2]%16;
+ 149   2        }
+ 150   1        else if (f_open==0)
+ 151   1        {
+ 152   2          Nixie[0] = 16;
+ 153   2          Nixie[1] = 16;
+ 154   2        }
+ 155   1        
+ 156   1        Nixie[2] = 17;
+ 157   1        Nixie[3] = time[1]/16;
+ 158   1        Nixie[4] = time[1]%16;
+ 159   1        Nixie[5] = 17;
+ 160   1        Nixie[6] = time[0]/16;
+ 161   1        Nixie[7] = time[0]%16;
+ 162   1      }
+ 163          void alarm_h()
+ 164          {
+ 165   1        if(f_open==1)
+ 166   1        {
+ 167   2          Nixie[0] = alarm[2]/16;
+ 168   2          Nixie[1] = alarm[2]%16;
+ 169   2        }
+ 170   1        else if (f_open==0)
+ 171   1        {
+ 172   2          Nixie[0] = 16;
+ 173   2          Nixie[1] = 16;
+ 174   2        }
+ 175   1        
+ 176   1        Nixie[2] = 17;
+ 177   1        Nixie[3] = alarm[1]/16;
+ 178   1        Nixie[4] = alarm[1]%16;
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 4   
+
+ 179   1        Nixie[5] = 17;
+ 180   1        Nixie[6] = alarm[0]/16;
+ 181   1        Nixie[7] = alarm[0]%16;
+ 182   1      }
+ 183          void Time_m()
+ 184          {   
+ 185   1        Nixie[0] = time[2]/16;
+ 186   1        Nixie[1] = time[2]%16;
+ 187   1        if(f_open==1)
+ 188   1        {
+ 189   2        Nixie[3] = time[1]/16;
+ 190   2        Nixie[4] = time[1]%16;
+ 191   2        }
+ 192   1        else if (f_open==0)
+ 193   1        {
+ 194   2          Nixie[3] = 16;
+ 195   2          Nixie[4] = 16;
+ 196   2        }
+ 197   1        Nixie[2] = 17;
+ 198   1        Nixie[5] = 17;
+ 199   1        Nixie[6] = time[0]/16;
+ 200   1        Nixie[7] = time[0]%16;
+ 201   1      }
+ 202          void alarm_m()
+ 203          {   
+ 204   1        Nixie[0] = alarm[2]/16;
+ 205   1        Nixie[1] = alarm[2]%16;
+ 206   1        if(f_open==1)
+ 207   1        {
+ 208   2        Nixie[3] = alarm[1]/16;
+ 209   2        Nixie[4] = alarm[1]%16;
+ 210   2        }
+ 211   1        else if (f_open==0)
+ 212   1        {
+ 213   2          Nixie[3] = 16;
+ 214   2          Nixie[4] = 16;
+ 215   2        }
+ 216   1        Nixie[2] = 17;
+ 217   1        Nixie[5] = 17;
+ 218   1        Nixie[6] = alarm[0]/16;
+ 219   1        Nixie[7] = alarm[0]%16;
+ 220   1      }
+ 221          void Time_s()
+ 222          {   
+ 223   1        Nixie[0] = time[2]/16;
+ 224   1        Nixie[1] = time[2]%16;
+ 225   1        Nixie[2] = 17;
+ 226   1        Nixie[3] = time[1]/16;
+ 227   1        Nixie[4] = time[1]%16;
+ 228   1        Nixie[5] = 17;
+ 229   1        if(f_open==1)
+ 230   1        {
+ 231   2          Nixie[6] = time[0]/16;
+ 232   2          Nixie[7] = time[0]%16;
+ 233   2        }
+ 234   1        else if (f_open==0)
+ 235   1        {
+ 236   2          Nixie[6] = 16;
+ 237   2          Nixie[7] = 16;
+ 238   2        }
+ 239   1      }
+ 240          void alarm_s()
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 5   
+
+ 241          {   
+ 242   1        Nixie[0] = alarm[2]/16;
+ 243   1        Nixie[1] = alarm[2]%16;
+ 244   1        Nixie[2] = 17;
+ 245   1        Nixie[3] = alarm[1]/16;
+ 246   1        Nixie[4] = alarm[1]%16;
+ 247   1        Nixie[5] = 17;
+ 248   1        if(f_open==1)
+ 249   1        {
+ 250   2          Nixie[6] = alarm[0]/16;
+ 251   2          Nixie[7] = alarm[0]%16;
+ 252   2        }
+ 253   1        else if (f_open==0)
+ 254   1        {
+ 255   2          Nixie[6] = 16;
+ 256   2          Nixie[7] = 16;
+ 257   2        }
+ 258   1      }
+ 259          
+ 260          void Key_Scan()
+ 261          {
+ 262   1        if(S7==0)
+ 263   1        {
+ 264   2          Delay(20);
+ 265   2          if(S7==0)
+ 266   2          {
+ 267   3            if(led_flag ==1)
+ 268   3            {
+ 269   4              anjian = 1;
+ 270   4            }
+ 271   3            time_mode++;
+ 272   3            time_mode %= 4;
+ 273   3            while(S7==0)
+ 274   3            {
+ 275   4              Display_max();
+ 276   4            }
+ 277   3              
+ 278   3          }
+ 279   2        }
+ 280   1        if(S6==0)
+ 281   1        {
+ 282   2          Delay(50);
+ 283   2          if(S6==0)
+ 284   2          {
+ 285   3            if(led_flag ==1)
+ 286   3            {
+ 287   4              anjian = 1;
+ 288   4            }
+ 289   3            alarm_mode++;
+ 290   3            alarm_mode %= 4;
+ 291   3            while(S6==0)
+ 292   3            {
+ 293   4              Display_max();
+ 294   4            }
+ 295   3          }
+ 296   2        }
+ 297   1        if(S5==0)
+ 298   1        {
+ 299   2          Delay(20);
+ 300   2          if(S5==0)
+ 301   2          {
+ 302   3            if(led_flag ==1)
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 6   
+
+ 303   3            {
+ 304   4              anjian = 1;
+ 305   4            }
+ 306   3            if(time_mode==1)
+ 307   3            {
+ 308   4              if((time[2]/16*10+time[2]%16)<23)
+ 309   4              {
+ 310   5                if(time[2]==0x09)
+ 311   5                {
+ 312   6                  time[2] = 0x10;
+ 313   6                }
+ 314   5                else if(time[2]==0x19)
+ 315   5                {
+ 316   6                  time[2] = 0x20;
+ 317   6                }
+ 318   5                else 
+ 319   5                {
+ 320   6                  time[2] = time[2]+0x01;
+ 321   6                }
+ 322   5              }
+ 323   4              else if(time[2]==0x23)
+ 324   4              {
+ 325   5                time[2] = 0x00;
+ 326   5              }
+ 327   4            }
+ 328   3            if(time_mode==2)
+ 329   3            {
+ 330   4              if((time[1]/16*10+time[1]%16)<=58)
+ 331   4              {
+ 332   5                if(time[1]==0x09)
+ 333   5                {
+ 334   6                  time[1] = 0x10;
+ 335   6                }
+ 336   5                else if(time[1]==0x19)
+ 337   5                {
+ 338   6                  time[1] = 0x20;
+ 339   6                }
+ 340   5                else if(time[1]==0x29)
+ 341   5                {
+ 342   6                  time[1] = 0x30;
+ 343   6                }
+ 344   5                else if(time[1]==0x39)
+ 345   5                {
+ 346   6                  time[1] = 0x40;
+ 347   6                }
+ 348   5                else if(time[1]==0x49)
+ 349   5                {
+ 350   6                  time[1] = 0x50;
+ 351   6                }
+ 352   5                else 
+ 353   5                {
+ 354   6                  time[1] = time[1]+0x01;
+ 355   6                }
+ 356   5              }
+ 357   4              else if(time[1]==0x59)
+ 358   4              {
+ 359   5                time[1] = 0x00;
+ 360   5              }
+ 361   4            }
+ 362   3            if(time_mode==3)
+ 363   3            {
+ 364   4              if((time[0]/16*10+time[0]%16)<=58)
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 7   
+
+ 365   4              {
+ 366   5                if(time[0]==0x09)
+ 367   5                {
+ 368   6                  time[0] = 0x10;
+ 369   6                }
+ 370   5                else if(time[0]==0x19)
+ 371   5                {
+ 372   6                  time[0] = 0x20;
+ 373   6                }
+ 374   5                else if(time[0]==0x29)
+ 375   5                {
+ 376   6                  time[0] = 0x30;
+ 377   6                }
+ 378   5                else if(time[0]==0x39)
+ 379   5                {
+ 380   6                  time[0] = 0x40;
+ 381   6                }
+ 382   5                else if(time[0]==0x49)
+ 383   5                {
+ 384   6                  time[0] = 0x50;
+ 385   6                }
+ 386   5                else 
+ 387   5                {
+ 388   6                  time[0] = time[0]+0x01;
+ 389   6                }
+ 390   5              }
+ 391   4              else if(time[0]==0x59)
+ 392   4              {
+ 393   5                time[0] = 0x00;
+ 394   5              }
+ 395   4            }
+ 396   3            if(alarm_mode==1)
+ 397   3            {
+ 398   4              if((alarm[2]/16*10+alarm[2]%16)<23)
+ 399   4              {
+ 400   5                if(alarm[2]==0x09)
+ 401   5                {
+ 402   6                  alarm[2] = 0x10;
+ 403   6                }
+ 404   5                else if(alarm[2]==0x19)
+ 405   5                {
+ 406   6                  alarm[2] = 0x20;
+ 407   6                }
+ 408   5                else 
+ 409   5                {
+ 410   6                  alarm[2] = alarm[2]+0x01;
+ 411   6                }
+ 412   5              }
+ 413   4              else if(alarm[2]==0x23)
+ 414   4              {
+ 415   5                alarm[2] = 0x00;
+ 416   5              }
+ 417   4            }
+ 418   3            if(alarm_mode==2)
+ 419   3            {
+ 420   4              if((alarm[1]/16*10+alarm[1]%16)<=58)
+ 421   4              {
+ 422   5                if(alarm[1]==0x09)
+ 423   5                {
+ 424   6                  alarm[1] = 0x10;
+ 425   6                }
+ 426   5                else if(alarm[1]==0x19)
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 8   
+
+ 427   5                {
+ 428   6                  alarm[1] = 0x20;
+ 429   6                }
+ 430   5                else if(alarm[1]==0x29)
+ 431   5                {
+ 432   6                  alarm[1] = 0x30;
+ 433   6                }
+ 434   5                else if(alarm[1]==0x39)
+ 435   5                {
+ 436   6                  alarm[1] = 0x40;
+ 437   6                }
+ 438   5                else if(alarm[1]==0x49)
+ 439   5                {
+ 440   6                  alarm[1] = 0x50;
+ 441   6                }
+ 442   5                else 
+ 443   5                {
+ 444   6                  alarm[1] = alarm[1]+0x01;
+ 445   6                }
+ 446   5              }
+ 447   4              else if(alarm[1]==0x59)
+ 448   4              {
+ 449   5                alarm[1] = 0x00;
+ 450   5              }
+ 451   4            }
+ 452   3            if(alarm_mode==3)
+ 453   3            {
+ 454   4              if((alarm[0]/16*10+alarm[0]%16)<=58)
+ 455   4              {
+ 456   5                if(alarm[0]==0x09)
+ 457   5                {
+ 458   6                  alarm[0] = 0x10;
+ 459   6                }
+ 460   5                else if(alarm[0]==0x19)
+ 461   5                {
+ 462   6                  alarm[0] = 0x20;
+ 463   6                }
+ 464   5                else if(alarm[0]==0x29)
+ 465   5                {
+ 466   6                  alarm[0] = 0x30;
+ 467   6                }
+ 468   5                else if(alarm[0]==0x39)
+ 469   5                {
+ 470   6                  alarm[0] = 0x40;
+ 471   6                }
+ 472   5                else if(alarm[0]==0x49)
+ 473   5                {
+ 474   6                  alarm[0] = 0x50;
+ 475   6                }
+ 476   5                else 
+ 477   5                {
+ 478   6                  alarm[0] = alarm[0]+0x01;
+ 479   6                }
+ 480   5              }
+ 481   4              else if(alarm[0]==0x59)
+ 482   4              {
+ 483   5                alarm[0] = 0x00;
+ 484   5              }
+ 485   4            }
+ 486   3            while(S5==0)
+ 487   3            {
+ 488   4              Display_max();
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 9   
+
+ 489   4            }
+ 490   3          }
+ 491   2        }
+ 492   1        if(S4==0)
+ 493   1        {
+ 494   2          Delay(50);
+ 495   2          if(S4==0)
+ 496   2          {
+ 497   3            if(led_flag ==1)
+ 498   3            {
+ 499   4              anjian = 1;
+ 500   4            }
+ 501   3            if(time_mode==1)
+ 502   3            {
+ 503   4              if((time[2]/16*10+time[2]%16)>=1)
+ 504   4              {
+ 505   5                if(time[2]==0x10)
+ 506   5                {
+ 507   6                  time[2] = 0x09;
+ 508   6                }
+ 509   5                else if(time[2]==0x20)
+ 510   5                {
+ 511   6                  time[2] = 0x19;
+ 512   6                }
+ 513   5                else 
+ 514   5                {
+ 515   6                  time[2] = time[2]-0x01;
+ 516   6                }
+ 517   5              }
+ 518   4              else if(time[2]==0x00)
+ 519   4              {
+ 520   5                time[2] = 0x23;
+ 521   5              }
+ 522   4            }
+ 523   3            if(time_mode==2)
+ 524   3            {
+ 525   4              if((time[1]/16*10+time[1]%16)>=1)
+ 526   4              {
+ 527   5                if(time[1]==0x10)
+ 528   5                {
+ 529   6                  time[1] = 0x09;
+ 530   6                }
+ 531   5                else if(time[1]==0x20)
+ 532   5                {
+ 533   6                  time[1] = 0x19;
+ 534   6                }
+ 535   5                else if(time[1]==0x30)
+ 536   5                {
+ 537   6                  time[1] = 0x29;
+ 538   6                }
+ 539   5                else if(time[1]==0x40)
+ 540   5                {
+ 541   6                  time[1] = 0x39;
+ 542   6                }
+ 543   5                else if(time[1]==0x50)
+ 544   5                {
+ 545   6                  time[1] = 0x49;
+ 546   6                }
+ 547   5                else 
+ 548   5                {
+ 549   6                  time[1] = time[1]-0x01;
+ 550   6                }
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 10  
+
+ 551   5              }
+ 552   4              else if(time[1]==0x00)
+ 553   4              {
+ 554   5                time[1] = 0x59;
+ 555   5              }
+ 556   4            }
+ 557   3            if(time_mode==3)
+ 558   3            {
+ 559   4              if((time[0]/16*10+time[0]%16)>=1)
+ 560   4              {
+ 561   5                if(time[0]==0x10)
+ 562   5                {
+ 563   6                  time[0] = 0x09;
+ 564   6                }
+ 565   5                else if(time[0]==0x20)
+ 566   5                {
+ 567   6                  time[0] = 0x19;
+ 568   6                }
+ 569   5                else if(time[0]==0x30)
+ 570   5                {
+ 571   6                  time[0] = 0x29;
+ 572   6                }
+ 573   5                else if(time[0]==0x40)
+ 574   5                {
+ 575   6                  time[0] = 0x39;
+ 576   6                }
+ 577   5                else if(time[0]==0x50)
+ 578   5                {
+ 579   6                  time[0] = 0x49;
+ 580   6                }
+ 581   5                else 
+ 582   5                {
+ 583   6                  time[0] = time[0]-0x01;
+ 584   6                }
+ 585   5              }
+ 586   4              else if(time[0]==0x00)
+ 587   4              {
+ 588   5                time[0] = 0x59;
+ 589   5              }
+ 590   4            }
+ 591   3            if(alarm_mode==1)
+ 592   3            {
+ 593   4              if((alarm[2]/16*10+alarm[2]%16)>=1)
+ 594   4              {
+ 595   5                if(alarm[2]==0x10)
+ 596   5                {
+ 597   6                  alarm[2] = 0x09;
+ 598   6                }
+ 599   5                else if(alarm[2]==0x20)
+ 600   5                {
+ 601   6                  alarm[2] = 0x19;
+ 602   6                }
+ 603   5                else 
+ 604   5                {
+ 605   6                  alarm[2] = alarm[2]-0x01;
+ 606   6                }
+ 607   5              }
+ 608   4              else if(alarm[2]==0x00)
+ 609   4              {
+ 610   5                alarm[2] = 0x23;
+ 611   5              }
+ 612   4            }
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 11  
+
+ 613   3            if(alarm_mode==2)
+ 614   3            {
+ 615   4              if((alarm[1]/16*10+alarm[1]%16)>=1)
+ 616   4              {
+ 617   5                if(alarm[1]==0x10)
+ 618   5                {
+ 619   6                  alarm[1] = 0x09;
+ 620   6                }
+ 621   5                else if(alarm[1]==0x20)
+ 622   5                {
+ 623   6                  alarm[1] = 0x19;
+ 624   6                }
+ 625   5                else if(alarm[1]==0x30)
+ 626   5                {
+ 627   6                  alarm[1] = 0x29;
+ 628   6                }
+ 629   5                else if(alarm[1]==0x40)
+ 630   5                {
+ 631   6                  alarm[1] = 0x39;
+ 632   6                }
+ 633   5                else if(alarm[1]==0x50)
+ 634   5                {
+ 635   6                  alarm[1] = 0x49;
+ 636   6                }
+ 637   5                else 
+ 638   5                {
+ 639   6                  alarm[1] = alarm[1]-0x01;
+ 640   6                }
+ 641   5              }
+ 642   4              else if(alarm[1]==0x00)
+ 643   4              {
+ 644   5                alarm[1] = 0x59;
+ 645   5              }
+ 646   4            }
+ 647   3            if(alarm_mode==3)
+ 648   3            {
+ 649   4              if((alarm[0]/16*10+alarm[0]%16)>=1)
+ 650   4              {
+ 651   5                if(alarm[0]==0x10)
+ 652   5                {
+ 653   6                  alarm[0] = 0x09;
+ 654   6                }
+ 655   5                else if(alarm[0]==0x20)
+ 656   5                {
+ 657   6                  alarm[0] = 0x19;
+ 658   6                }
+ 659   5                else if(alarm[0]==0x30)
+ 660   5                {
+ 661   6                  alarm[0] = 0x29;
+ 662   6                }
+ 663   5                else if(alarm[0]==0x40)
+ 664   5                {
+ 665   6                  alarm[0] = 0x39;
+ 666   6                }
+ 667   5                else if(alarm[0]==0x50)
+ 668   5                {
+ 669   6                  alarm[0] = 0x49;
+ 670   6                }
+ 671   5                else 
+ 672   5                {
+ 673   6                  alarm[0] = alarm[0]-0x01;
+ 674   6                }
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 12  
+
+ 675   5              }
+ 676   4              else if(alarm[0]==0x00)
+ 677   4              {
+ 678   5                alarm[0] = 0x59;
+ 679   5              }
+ 680   4            }
+ 681   3            if(time_mode==0)
+ 682   3            {
+ 683   4              flag_temp = 1;
+ 684   4            }
+ 685   3            while(S4==0)
+ 686   3            {
+ 687   4              Change();
+ 688   4              Display_max();
+ 689   4            }
+ 690   3            flag_temp = 0;
+ 691   3          }
+ 692   2        }
+ 693   1      }
+ 694          
+ 695          void Display_max()
+ 696          {
+ 697   1        if(alarm_mode==0)
+ 698   1        {
+ 699   2          switch(time_mode)
+ 700   2          {
+ 701   3            case 0: 
+ 702   3              if(flag_temp==1)
+ 703   3              {
+ 704   4                Temp_Display();
+ 705   4              }
+ 706   3              else{time_Display();}
+ 707   3            break;
+ 708   3            case 1: Time_h();break;
+ 709   3            case 2: Time_m();break;
+ 710   3            case 3: Time_s();break;
+ 711   3          }
+ 712   2        }
+ 713   1        else if(alarm_mode!=0)
+ 714   1        {
+ 715   2          switch(alarm_mode)
+ 716   2          {
+ 717   3            case 1: alarm_h();break;
+ 718   3            case 2: alarm_m();break;
+ 719   3            case 3: alarm_s();break;
+ 720   3          }
+ 721   2        }
+ 722   1            
+ 723   1      }
+ 724          
+ 725          void main()
+ 726          { 
+ 727   1        HC138_init(5,0x00);
+ 728   1        HC138_init(4,0xff);
+ 729   1        DS1302_Write();
+ 730   1        Timer0_Init();
+ 731   1      
+ 732   1        while(1)
+ 733   1        { 
+ 734   2          Key_Scan();
+ 735   2          Display_max();
+ 736   2        }
+C51 COMPILER V9.59.0.0   MAIN                                                              04/06/2022 14:49:03 PAGE 13  
+
+ 737   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2315    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     17       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

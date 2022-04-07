@@ -1,0 +1,524 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "iic.h"
+   3          
+   4          sbit S7 = P3^0;
+   5          sbit S6 = P3^1;
+   6          sbit S5 = P3^2;
+   7          sbit S4 = P3^3;
+   8          
+   9          int dat_adc;
+  10          unsigned int count;
+  11          unsigned int time[4];
+  12          unsigned char led_mode=1;
+  13          unsigned char led_stat=0xff;
+  14          unsigned int stat;
+  15          unsigned char dat_pwm;
+  16          unsigned char temp_pwm;
+  17          unsigned char flag;
+  18          unsigned char nixie;
+  19          unsigned int nixie_800;
+  20          unsigned char key_set;
+  21          unsigned char led_level2;
+  22          unsigned char code NixieTable[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,
+  23                                      0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8e,
+  24                                      0xbf,0x7f};
+  25          unsigned char code NixieTableDot[]={0x40,0x79,0x24,0x30,0x19,0x12,0x02,0x78,0x00,0x10};
+  26          
+  27          void Display_mode();
+  28          void Display_time();
+  29          void HC138_init(unsigned char channel,unsigned char dat)
+  30          {
+  31   1        P0 = dat;
+  32   1        switch (channel)
+  33   1        {
+  34   2          case 4: P2 = (P2&0x1f)|0x80;break;
+  35   2          case 5: P2 = (P2&0x1f)|0xa0;break;
+  36   2          case 6: P2 = (P2&0x1f)|0xc0;break;
+  37   2          case 7: P2 = (P2&0x1f)|0xe0;break;
+  38   2          case 0: P2 = (P2&0x1f)|0x00;break;
+  39   2        }
+  40   1        P2 = (P2&0x1f)|0x00;
+  41   1      }
+  42          void Delay(unsigned int t)
+  43          {
+  44   1        while(t--);
+  45   1      }
+  46          void Nixie_Display(unsigned char pose,unsigned char dat)
+  47          {
+  48   1        HC138_init(6,0x01 << pose);
+  49   1        HC138_init(7,dat);
+  50   1      }
+  51          float ADC_Read()
+  52          {
+  53   1        float temp;
+  54   1        IIC_Start();
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 2   
+
+  55   1        IIC_SendByte(0x90);
+  56   1        IIC_WaitAck();
+  57   1        IIC_SendByte(0x43);
+  58   1        IIC_WaitAck();
+  59   1        IIC_Stop();
+  60   1      
+  61   1        IIC_Start();
+  62   1        IIC_SendByte(0x91);
+  63   1        IIC_WaitAck();
+  64   1        temp=IIC_RecByte();
+  65   1        IIC_WaitAck();
+  66   1        IIC_SendAck(1);
+  67   1        IIC_Stop();
+  68   1        return temp;
+  69   1      }
+  70          void change()
+  71          {
+  72   1        float x;
+  73   1        x = ADC_Read();
+  74   1        dat_adc = (int)(x*1.961);
+  75   1      }
+  76          unsigned int AT24C02_read(unsigned char addr)
+  77          {
+  78   1        unsigned int dat;
+  79   1        IIC_Start();
+  80   1        IIC_SendByte(0xa0);
+  81   1        IIC_WaitAck();
+  82   1        IIC_SendByte(addr);
+  83   1        IIC_WaitAck();
+  84   1        
+  85   1        IIC_Start();
+  86   1        IIC_SendByte(0xa1);
+  87   1        IIC_WaitAck();
+  88   1        dat=IIC_RecByte();
+  89   1        IIC_WaitAck();
+  90   1        IIC_SendAck(1);
+  91   1        IIC_Stop();
+  92   1        return dat;
+  93   1      }
+  94          void AT24C02_Write(unsigned char addr,unsigned char dat)
+  95          {
+  96   1        IIC_Start();
+  97   1        IIC_SendByte(0xa0);
+  98   1        IIC_WaitAck();
+  99   1        IIC_SendByte(addr);
+ 100   1        IIC_WaitAck();
+ 101   1        IIC_SendByte(dat);
+ 102   1        IIC_WaitAck();
+ 103   1        IIC_Stop();
+ 104   1      }
+ 105          void Timer0_init()    //1毫秒@12.000MHz
+ 106          {
+ 107   1        AUXR &= 0x7F;   //定时器时钟12T模式
+ 108   1        TMOD &= 0xF0;   //设置定时器模式
+ 109   1        TMOD |= 0x01;   //设置定时器模式
+ 110   1        TL0 = (65535-1000)%256;   //设置定时初值
+ 111   1        TH0 = (65535-1000)/256;   //设置定时初值
+ 112   1        TR0 = 1;    //定时器0开始计时
+ 113   1        ET0 = 1;
+ 114   1        EA  = 1;
+ 115   1      }
+ 116          
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 3   
+
+ 117          void LED_run()
+ 118          {
+ 119   1        switch(stat)
+ 120   1        {
+ 121   2          case 0: led_stat=0xff;break;
+ 122   2          case 1: led_stat=0xfe;break;
+ 123   2          case 2: led_stat=0xfd;break;
+ 124   2          case 3: led_stat=0xfb;break;
+ 125   2          case 4: led_stat=0xf7;break;
+ 126   2          case 5: led_stat=0xef;break;
+ 127   2          case 6: led_stat=0xdf;break;
+ 128   2          case 7: led_stat=0xbf;break;
+ 129   2          case 8: led_stat=0x7f;break;
+ 130   2          
+ 131   2          case 9:  led_stat=0x7f;break;
+ 132   2          case 10: led_stat=0xbf;break;
+ 133   2          case 11: led_stat=0xdf;break;
+ 134   2          case 12: led_stat=0xef;break;
+ 135   2          case 13: led_stat=0xf7;break;
+ 136   2          case 14: led_stat=0xfb;break;
+ 137   2          case 15: led_stat=0xfd;break;
+ 138   2          case 16: led_stat=0xfe;break;
+ 139   2          
+ 140   2          case 17: led_stat=0x7e;break;
+ 141   2          case 18: led_stat=0xbd;break;
+ 142   2          case 19: led_stat=0xdb;break;
+ 143   2          case 20: led_stat=0xe7;break;
+ 144   2          
+ 145   2          case 21: led_stat=0xe7;break;
+ 146   2          case 22: led_stat=0xdb;break;
+ 147   2          case 23: led_stat=0xbd;break;
+ 148   2          case 24: led_stat=0x7e;break;
+ 149   2        }
+ 150   1        if(stat==1)
+ 151   1        {
+ 152   2          led_mode  = 1;
+ 153   2        }
+ 154   1        else if(stat == 9)
+ 155   1        {
+ 156   2          led_mode  = 2;
+ 157   2        }
+ 158   1        else if(stat == 17)
+ 159   1        {
+ 160   2          led_mode  = 3;
+ 161   2        }
+ 162   1        else if(stat == 21)
+ 163   1        {
+ 164   2          led_mode  = 4;
+ 165   2        }
+ 166   1      }
+ 167          void LED_level()
+ 168          {
+ 169   1        if(dat_adc<125)
+ 170   1        {
+ 171   2          dat_pwm=5;
+ 172   2          led_level2=1;
+ 173   2        }
+ 174   1        else if(dat_adc<250)
+ 175   1        {
+ 176   2          dat_pwm=10;
+ 177   2          led_level2=2;
+ 178   2        }
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 4   
+
+ 179   1        else if(dat_adc<375)
+ 180   1        {
+ 181   2          dat_pwm=15;
+ 182   2          led_level2=3;
+ 183   2        }
+ 184   1        else if(dat_adc<=500)
+ 185   1        {
+ 186   2          dat_pwm=20;
+ 187   2          led_level2=4;
+ 188   2        }
+ 189   1      }
+ 190          void Timer0_Service() interrupt 1
+ 191          {
+ 192   1        TL0 = (65535-1000)%256;   //设置定时初值
+ 193   1        TH0 = (65535-1000)/256;   //设置定时初值
+ 194   1        count++;
+ 195   1        temp_pwm++;
+ 196   1        if(temp_pwm<=dat_pwm)
+ 197   1        {
+ 198   2          HC138_init(4,led_stat);
+ 199   2        }
+ 200   1        else if(temp_pwm<20)
+ 201   1        {
+ 202   2          HC138_init(4,0xff);
+ 203   2        }
+ 204   1        else {HC138_init(4,led_stat);temp_pwm=0;LED_run();}
+ 205   1        if(count==time[led_mode-1])
+ 206   1        {   
+ 207   2          count=0;
+ 208   2          if(flag == 1)
+ 209   2            stat++;
+ 210   2          if(stat == 25)
+ 211   2            stat=0;
+ 212   2        }
+ 213   1        
+ 214   1        nixie_800++;
+ 215   1        if(nixie_800==800)
+ 216   1        {
+ 217   2          nixie_800=0;
+ 218   2          nixie=~nixie;
+ 219   2        }
+ 220   1      }
+ 221          void Nixie_off()
+ 222          {
+ 223   1        HC138_init(6,0xff);
+ 224   1        HC138_init(7,0xff);
+ 225   1      }
+ 226          
+ 227          void level_Display()
+ 228          {
+ 229   1        Nixie_Display(0,0xff);
+ 230   1        Delay(200);
+ 231   1        Nixie_Display(1,0xff);
+ 232   1        Delay(200);
+ 233   1        Nixie_Display(2,0xff);
+ 234   1        Delay(200);
+ 235   1        Nixie_Display(3,0xff);
+ 236   1        Delay(200);
+ 237   1        Nixie_Display(4,0xff);
+ 238   1        Delay(200);
+ 239   1        Nixie_Display(5,0xff);
+ 240   1        Delay(200);
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 5   
+
+ 241   1        Nixie_Display(6,NixieTable[16]);
+ 242   1        Delay(200);
+ 243   1        Nixie_Display(7,NixieTable[led_level2]);
+ 244   1        Delay(200);
+ 245   1        HC138_init(6,0xff);
+ 246   1        HC138_init(7,0xff);
+ 247   1      }
+ 248          void save()
+ 249          {
+ 250   1        switch(led_mode)
+ 251   1        {
+ 252   2          case 1: AT24C02_Write(0x01,time[0]/10);break; 
+ 253   2          case 2: AT24C02_Write(0x02,time[1]/10);break; 
+ 254   2          case 3: AT24C02_Write(0x03,time[2]/10);break; 
+ 255   2          case 4: AT24C02_Write(0x04,time[3]/10);break; 
+ 256   2        }
+ 257   1        Delay(1000);
+ 258   1        Nixie_off();
+ 259   1        key_set = 0;
+ 260   1        led_mode = 1;
+ 261   1      
+ 262   1      }
+ 263          void Display_max()
+ 264          {
+ 265   1        switch(key_set)
+ 266   1        {
+ 267   2          case 1: Display_mode();break;
+ 268   2          case 2: Display_time();break;
+ 269   2          case 3: save();break;
+ 270   2        }
+ 271   1      }
+ 272          void Key_scan()
+ 273          {
+ 274   1        if(S7 == 0)
+ 275   1        {
+ 276   2          Delay(50);
+ 277   2          if(S7 == 0)
+ 278   2          {
+ 279   3            if(flag == 0)
+ 280   3            {
+ 281   4              flag = 1;
+ 282   4            }
+ 283   3            else 
+ 284   3            {
+ 285   4              flag = 0;
+ 286   4              stat = 0;
+ 287   4              key_set = 0;
+ 288   4              led_mode=1;
+ 289   4            }
+ 290   3            while(S7 == 0);
+ 291   3          }
+ 292   2        }
+ 293   1        if(S6==0)
+ 294   1        {
+ 295   2          Delay(10);
+ 296   2          if(S6==0)
+ 297   2          {
+ 298   3            key_set++;
+ 299   3            if(key_set==1)
+ 300   3            {
+ 301   4              Display_mode();
+ 302   4            }
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 6   
+
+ 303   3            else if(key_set==2)
+ 304   3            {
+ 305   4              Display_time();
+ 306   4            }
+ 307   3            while(S6 == 0){
+ 308   4              Display_max();
+ 309   4            }
+ 310   3          }
+ 311   2        }
+ 312   1        if(S5==0)
+ 313   1        {
+ 314   2          Delay(10);
+ 315   2          if(S5==0)
+ 316   2          {
+ 317   3            if(key_set==1)
+ 318   3            {
+ 319   4              led_mode++;
+ 320   4              if(led_mode==5)
+ 321   4              {
+ 322   5                led_mode = 1;
+ 323   5              }
+ 324   4              while(S5==0)
+ 325   4              {Display_mode();}
+ 326   4            }
+ 327   3            else if(key_set==2)
+ 328   3            {
+ 329   4              time[led_mode-1] = time[led_mode-1]+100;
+ 330   4              if(time[led_mode-1]>1200)
+ 331   4              {
+ 332   5                time[led_mode-1]=1200;
+ 333   5              }
+ 334   4              while(S5==0)
+ 335   4              {Display_time();}
+ 336   4            }
+ 337   3          }
+ 338   2        }
+ 339   1        if(S4==0)
+ 340   1        {
+ 341   2          Delay(10);
+ 342   2          if(S4==0)
+ 343   2          {
+ 344   3            if(key_set==1)
+ 345   3            {
+ 346   4              led_mode--;
+ 347   4              if(led_mode==0)
+ 348   4              {
+ 349   5                led_mode = 4;
+ 350   5              }
+ 351   4              while(S4==0)
+ 352   4              {Display_mode();}
+ 353   4            }
+ 354   3            else if(key_set==2)
+ 355   3            {
+ 356   4              time[led_mode-1] = time[led_mode-1]-100;
+ 357   4              if(time[led_mode-1]<400)
+ 358   4              {
+ 359   5                time[led_mode-1]=400;
+ 360   5              }
+ 361   4              while(S4==0)
+ 362   4              {Display_time();}
+ 363   4            }
+ 364   3            else if(key_set==0)
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 7   
+
+ 365   3            {
+ 366   4              while(S4==0) 
+ 367   4              {
+ 368   5                level_Display();
+ 369   5                LED_run();
+ 370   5              }
+ 371   4            }
+ 372   3          }
+ 373   2        }
+ 374   1      }
+ 375          
+ 376          
+ 377          void Display_mode()
+ 378          {
+ 379   1        if(nixie==0)
+ 380   1        {
+ 381   2          Nixie_Display(0,0xbf);
+ 382   2          Delay(200);
+ 383   2          Nixie_Display(1,NixieTable[led_mode]);
+ 384   2          Delay(200);
+ 385   2          Nixie_Display(2,0xbf);
+ 386   2          Delay(200);
+ 387   2        }
+ 388   1        else 
+ 389   1        {
+ 390   2          Nixie_Display(0,0xff);
+ 391   2          Delay(200);
+ 392   2          Nixie_Display(1,0xff);
+ 393   2          Delay(200);
+ 394   2          Nixie_Display(2,0xff);
+ 395   2          Delay(200);
+ 396   2        }
+ 397   1        if(time[led_mode-1]>=1000)
+ 398   1        {
+ 399   2          Nixie_Display(4,NixieTable[time[led_mode-1]/1000]);
+ 400   2          Delay(200);
+ 401   2        }
+ 402   1      
+ 403   1        Nixie_Display(5,NixieTable[time[led_mode-1]/100%10]);
+ 404   1        Delay(200);
+ 405   1        Nixie_Display(6,NixieTable[time[led_mode-1]/10%10]);
+ 406   1        Delay(200);
+ 407   1        Nixie_Display(7,NixieTable[time[led_mode-1]%10]);
+ 408   1        Delay(200);
+ 409   1        
+ 410   1        HC138_init(6,0xff);
+ 411   1        HC138_init(7,0xff);
+ 412   1        
+ 413   1      }
+ 414          
+ 415          void Display_time()
+ 416          {
+ 417   1          Nixie_Display(0,0xbf);
+ 418   1          Delay(200);
+ 419   1          Nixie_Display(1,NixieTable[led_mode]);
+ 420   1          Delay(200);
+ 421   1          Nixie_Display(2,0xbf);
+ 422   1          Delay(200);
+ 423   1        if(nixie==0)
+ 424   1        {
+ 425   2          if(time[led_mode-1]>=1000)
+ 426   2          {
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 8   
+
+ 427   3            Nixie_Display(4,NixieTable[time[led_mode-1]/1000]);
+ 428   3            Delay(200);
+ 429   3          }
+ 430   2          Nixie_Display(5,NixieTable[time[led_mode-1]/100%10]);
+ 431   2          Delay(200);
+ 432   2          Nixie_Display(6,NixieTable[time[led_mode-1]/10%10]);
+ 433   2          Delay(200);
+ 434   2          Nixie_Display(7,NixieTable[time[led_mode-1]%10]);
+ 435   2          Delay(200);
+ 436   2        }
+ 437   1        else 
+ 438   1        {
+ 439   2          Nixie_Display(4,0xff);
+ 440   2          Delay(200);
+ 441   2          Nixie_Display(5,0xff);
+ 442   2          Delay(200);
+ 443   2          Nixie_Display(6,0xff);
+ 444   2          Delay(200);
+ 445   2          Nixie_Display(7,0xff);
+ 446   2          Delay(200);
+ 447   2        }
+ 448   1        HC138_init(6,0xff);
+ 449   1        HC138_init(7,0xff);
+ 450   1      }
+ 451          void System_init()
+ 452          { 
+ 453   1        HC138_init(4,0xff);
+ 454   1        HC138_init(5,0x00);
+ 455   1      }
+ 456          void READ_TIME()
+ 457          {
+ 458   1        unsigned char j;
+ 459   1        time[0]=AT24C02_read(0x01)*10;
+ 460   1        time[1]=AT24C02_read(0x02)*10;
+ 461   1        time[2]=AT24C02_read(0x03)*10;
+ 462   1        time[3]=AT24C02_read(0x04)*10;
+ 463   1        for(j=0;j<4;j++)
+ 464   1        {
+ 465   2          if((time[j]>1200)||(time[j]<400))
+ 466   2          {
+ 467   3            time[j]=400;
+ 468   3          }
+ 469   2        }
+ 470   1      }
+ 471          void main()
+ 472          {
+ 473   1        System_init();
+ 474   1        READ_TIME();
+ 475   1        Timer0_init();
+ 476   1        while(1)
+ 477   1        {
+ 478   2          ADC_Read();
+ 479   2          change();
+ 480   2          LED_level();
+ 481   2          Key_scan();
+ 482   2          Display_max();
+ 483   2        }
+ 484   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1844    ----
+C51 COMPILER V9.59.0.0   MAIN                                                              04/04/2022 17:55:08 PAGE 9   
+
+   CONSTANT SIZE    =     28    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     24      13
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

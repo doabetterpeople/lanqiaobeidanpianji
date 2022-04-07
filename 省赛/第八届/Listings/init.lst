@@ -1,0 +1,124 @@
+C51 COMPILER V9.59.0.0   INIT                                                              04/06/2022 14:49:03 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE INIT
+OBJECT MODULE PLACED IN .\Objects\init.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE init.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\init
+                    -.lst) TABS(2) OBJECT(.\Objects\init.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "onewire.h"
+   3          #include "ds1302.h"
+   4          
+   5          unsigned char Nixie[]={0,0,0,0,0,0,0,0};
+   6          unsigned char duanma[] = { 0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71
+             -,0x00,0x40};
+   7          unsigned char Write_DS1302_addr[] = {0x80,0x82,0x84,0x86,0x88,0x8A,0x8C,0x8E};
+   8          unsigned char Read_DS1302_addr[] =  {0x81,0x83,0x85,0x87,0x89,0x8B,0x8D,0x8F};
+   9          
+  10                                 //秒 分 时 日 月 星期 年
+  11          unsigned char time[] = {0x50,0x59,0x23,0x05,0x04,0x02,0x22,};
+  12          unsigned char alarm[]={0,0,0,0,0,0,0,0};
+  13          void HC138_init(unsigned char channel,unsigned char dat)
+  14          {
+  15   1        P0 = dat;
+  16   1        switch(channel)
+  17   1      
+  18   1        {
+  19   2          case 4: P2 = (P2&0x1f) | 0x80; break;
+  20   2          case 5: P2 = (P2&0x1f) | 0xa0; break;
+  21   2          case 6: P2 = (P2&0x1f) | 0xc0; break;
+  22   2          case 7: P2 = (P2&0x1f) | 0xe0; break;
+  23   2          case 0: P2 = (P2&0x1f) | 0x00; break;
+  24   2        }
+  25   1        P2 = P2&0x1f;
+  26   1      }
+  27          
+  28          void Nixie_Display()
+  29          {
+  30   1        static unsigned char i;
+  31   1        HC138_init(6,0x00);
+  32   1      
+  33   1        HC138_init(6,0x01<<i);
+  34   1        HC138_init(7,~duanma[Nixie[i]]);
+  35   1      
+  36   1        if(++i==8)
+  37   1        {
+  38   2          i=0;
+  39   2        }
+  40   1      
+  41   1      }
+  42          
+  43          void Timer0_Init()    
+  44          {
+  45   1        TMOD &= 0xF0;   //设置定时器模式
+  46   1        TL0 = 0x18;   //设置定时初值
+  47   1        TH0 = 0xFC;   //设置定时初值
+  48   1        TF0 = 0;    //清除TF0标志
+  49   1        TR0 = 1;    //定时器0开始计时
+  50   1        ET0 = 1;  
+  51   1        EA  = 1;
+  52   1      }
+  53          
+C51 COMPILER V9.59.0.0   INIT                                                              04/06/2022 14:49:03 PAGE 2   
+
+  54          
+  55          
+  56          void Delay(unsigned int t)
+  57          {
+  58   1        while(t--);
+  59   1      }
+  60          
+  61          float DS18B20_Read()
+  62          {
+  63   1        unsigned char MSB,LSB;
+  64   1        float temp;
+  65   1        init_ds18b20();
+  66   1        Write_DS18B20(0xcc);
+  67   1        Write_DS18B20(0x44);
+  68   1      
+  69   1        init_ds18b20();
+  70   1        Write_DS18B20(0xcc);
+  71   1        Write_DS18B20(0xbe);
+  72   1      
+  73   1        LSB = Read_DS18B20();
+  74   1        MSB = Read_DS18B20();
+  75   1        
+  76   1        temp = MSB<<8|LSB;
+  77   1        return temp*0.0625;
+  78   1      }
+  79          void DS1302_Write()
+  80          {
+  81   1        unsigned char i;
+  82   1        Write_Ds1302(0x8e,0x00);
+  83   1        for(i=0;i<7;i++)
+  84   1        {
+  85   2          Write_Ds1302(Write_DS1302_addr[i],time[i]);
+  86   2        }
+  87   1        Write_Ds1302(0x8e,0x80);
+  88   1      }
+  89          
+  90          void DS1302_Read()
+  91          {
+  92   1        char i;
+  93   1        for(i=0;i<7;i++)
+  94   1        {
+  95   2          time[i] = Read_Ds1302 (Read_DS1302_addr[i]);
+  96   2        }
+  97   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    307    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     58       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
